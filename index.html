@@ -370,276 +370,238 @@ window.showView = async v => {
 
 // ── DASHBOARD ─────────────────────────────────────────────────────
 async function renderDash(){
-  const [debts,incomeList]=await Promise.all([getAll('debts'),getAllIncome()]);
+  const [debts,incomeList,expenses]=await Promise.all([getAll('debts'),getAllIncome(),getAll('expenses')]);
   const now=new Date(),hr=now.getHours();
   const today=new Date();today.setHours(0,0,0,0);
-  const ms=new Date(now.getFullYear(),now.getMonth(),1);
-  const me=new Date(now.getFullYear(),now.getMonth()+1,0);
-  const mk=monthKey();
   const uname=(profile?.name||'').split(' ')[0]||'ka-utang';
-  const mnInc=incomeList.find(i=>i.monthKey===mk);
-  const totalIncome=mnInc?n(mnInc.total):(n(profile?.totalIncome)||362000);
 
+  // month helpers
+  function monthData(offset){
+    const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
+    const ms=new Date(d.getFullYear(),d.getMonth(),1);
+    const me=new Date(d.getFullYear(),d.getMonth()+1,0);
+    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const label=d.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+    const mnInc=incomeList.find(i=>i.monthKey===mk);
+    const income=mnInc?n(mnInc.total):(n(profile?.totalIncome)||362000);
+    const dueList=debts.filter(d=>{
+      if(!d.nextDue)return false;
+      const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
+      return dd>=ms&&dd<=me;
+    }).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
+    const totalDue=dueList.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+    const paidList=dueList.filter(d=>d.paid);
+    const paidAmt=paidList.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+    const unpaid=totalDue-paidAmt;
+    const cashLeft=income-totalDue;
+    return{ms,me,mk,label,income,dueList,totalDue,paidList,paidAmt,unpaid,cashLeft};
+  }
+
+  const cm=monthData(0), nm=monthData(1);
+
+  // overall
   const total=debts.reduce((s,d)=>s+n(d.balance),0);
-  const paidAmt=debts.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
-  const pct=total>0?(paidAmt/total*100):0;
-  const active=debts.filter(d=>!d.paid).length;
-  const finishing=debts.filter(d=>!d.paid&&n(d.monthsLeft)>0&&n(d.monthsLeft)<=2).length;
+  const paidDebtAmt=debts.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
+  const pct=total>0?(paidDebtAmt/total*100):0;
 
-  const dueThisMonth=debts.filter(d=>{
-    if(!d.nextDue)return false;
-    const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
-    return dd>=ms&&dd<=me;
-  }).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
+  // 5 category breakdown
+  const catDef=[
+    {id:1,icon:'🏠',label:'Real Estate',color:'#1E7E45'},
+    {id:2,icon:'🚗',label:'Vehicle',color:'#1565C0'},
+    {id:3,icon:'💵',label:'Cash Loans',color:'#D4870D'},
+    {id:4,icon:'💳',label:'Revolving',color:'#C0392B'},
+    {id:5,icon:'📦',label:'BNPL',color:'#7B3FA0'},
+  ];
+  const catCards=catDef.map(c=>{
+    const cd=debts.filter(d=>d.cat===c.id&&!d.paid);
+    const ct=cd.reduce((s,d)=>s+n(d.balance),0);
+    const cm2=cd.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+    if(ct===0&&cd.length===0)return'';
+    return `<div style="background:var(--white);border-radius:12px;padding:.875rem;box-shadow:var(--shadow);border:1px solid var(--border);border-left:4px solid ${c.color}">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:18px">${c.icon}</span>
+        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.label}</div>
+      </div>
+      <div style="font-size:16px;font-weight:800;color:${c.color}">₱${f(ct)}</div>
+      <div style="font-size:10px;color:var(--text-light);margin-top:2px">${cd.length} active · ₱${f(cm2)}/mo</div>
+    </div>`;
+  }).join('');
 
-  const totalDue=dueThisMonth.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-  const paidMonth=dueThisMonth.filter(d=>d.paid);
-  const paidMonthAmt=paidMonth.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-  const unpaid=totalDue-paidMonthAmt;
-  const remaining=totalIncome-totalDue;
-  const in7=new Date(today);in7.setDate(today.getDate()+7);
-  const urgentCount=dueThisMonth.filter(d=>!d.paid&&new Date(d.nextDue)<=in7).length;
-
-  const dueList=dueThisMonth.length===0
-    ?`<div style="font-size:13px;color:var(--text-light);padding:12px 0;text-align:center">No due dates set this month.<br><span style="font-size:12px">Edit debts to set next due dates.</span></div>`
-    :dueThisMonth.map(d=>{
+  // month dues list
+  function dueListHTML(m,isCurrentMonth){
+    if(m.dueList.length===0)return`<div style="font-size:12px;color:var(--text-light);padding:10px 0;text-align:center">No due dates set. Edit debts to add due dates.</div>`;
+    return m.dueList.map(d=>{
       const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
       const dl=Math.ceil((dd-today)/(1000*60*60*24));
       const past=dl<0;
       const lbl=d.paid?'✓ Paid':past?`${Math.abs(dl)}d overdue`:dl===0?'Today':`${dl}d`;
       const tc=d.paid?'tag-green':past?'tag-red':dl<=3?'tag-amber':'tag-blue';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:8px">
-        <div style="display:flex;align-items:center;gap:7px;min-width:0">
-          <span class="tag ${tc}" style="flex-shrink:0">${lbl}</span>
-          <div style="min-width:0"><div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
-          <div style="font-size:10px;color:var(--text-light)">${d.nextDue} · ${d.dueDay||''}</div></div>
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px">
+        <div style="display:flex;align-items:center;gap:6px;min-width:0">
+          ${isCurrentMonth?`<span class="tag ${tc}" style="flex-shrink:0;font-size:10px">${lbl}</span>`:''}
+          <div style="min-width:0">
+            <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
+            <div style="font-size:10px;color:var(--text-light)">${d.nextDue} · ${d.dueDay||''}</div>
+          </div>
         </div>
         <div style="font-size:13px;font-weight:800;color:${d.paid?'var(--green)':past?'var(--red)':'var(--text)'}">₱${f(d.monthlyPay||0)}</div>
       </div>`;
-    }).join('')+`<div style="display:flex;justify-content:space-between;padding:9px 0;margin-top:2px"><span style="font-size:13px;font-weight:700">Month total</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(totalDue)}</span></div>`;
-
-  const phCards=[1,2,3,4].map(p=>{
-    const pd=debts.filter(d=>d.phase===p);
-    const pt=pd.reduce((s,d)=>s+n(d.balance),0);
-    const pp=pd.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
-    const pph=pt>0?(pp/pt*100).toFixed(0):0;
-    const cols={1:'var(--red)',2:'var(--amber)',3:'var(--blue)',4:'var(--green)'};
-    const labs={1:'Phase 1 — Finish fast',2:'Phase 2 — Free cash',3:'Phase 3 — Kill revolving',4:'Phase 4 — Long-term assets'};
-    return `<div class="detail-box" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:7px">
-        <div style="font-size:13px;font-weight:700">${labs[p]}</div>
-        <div style="font-size:13px;font-weight:800;color:${cols[p]}">₱${f(pt)}</div>
-      </div>
-      <div class="bar-bg"><div style="height:100%;border-radius:99px;background:${cols[p]};width:${pph}%"></div></div>
-      <div style="font-size:11px;color:var(--text-light);margin-top:4px">${pd.filter(d=>!d.paid).length} active · ${pph}% cleared</div>
+    }).join('')+`<div style="display:flex;justify-content:space-between;padding:8px 0">
+      <span style="font-size:12px;font-weight:700">Total due</span>
+      <span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span>
     </div>`;
-  }).join('');
+  }
+
+  // recommendations engine
+  const finishing=debts.filter(d=>!d.paid&&n(d.monthsLeft)>0&&n(d.monthsLeft)<=2);
+  const highInterest=debts.filter(d=>!d.paid&&d.rate==='HIGH').sort((a,b)=>n(b.balance)-n(a.balance));
+  const overdue=cm.dueList.filter(d=>{if(d.paid||!d.nextDue)return false;const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd<today;});
+  const totalExp=expenses.reduce((s,e)=>s+n(e.amount),0);
+
+  let recs=[];
+  if(overdue.length>0) recs.push({icon:'🔴',type:'danger',title:'Overdue payments!',body:`${overdue.map(d=>d.name).join(', ')} ${overdue.length===1?'is':'are'} past due. Pay immediately to avoid penalties and credit damage.`});
+  if(finishing.length>0) recs.push({icon:'🏁',type:'amber',title:`${finishing.length} debt${finishing.length>1?'s':''} finishing this month`,body:`${finishing.map(d=>d.name+'('+d.monthsLeft+'mo)').join(', ')}. Pay these off — every peso freed rolls into the next debt.`});
+  if(cm.cashLeft<0) recs.push({icon:'⚠️',type:'danger',title:'Payments exceed income this month',body:`You are ₱${f(Math.abs(cm.cashLeft))} short. Call lenders now to request restructuring or due date alignment before missing payments.`});
+  else if(cm.cashLeft<50000) recs.push({icon:'⚡',type:'amber',title:'Tight cash flow this month',body:`Only ₱${f(cm.cashLeft)} left after debt payments. Avoid new purchases. Put any extra into the nearest-ending debt.`});
+  if(highInterest.length>0&&finishing.length===0) recs.push({icon:'💡',type:'blue',title:'Attack high-interest debts next',body:`${highInterest[0].name} (₱${f(highInterest[0].balance)}) is your most expensive revolving debt. Pay above minimum to reduce interest drain.`});
+  const revolving=debts.filter(d=>!d.paid&&d.cat===4);
+  if(revolving.length>0) recs.push({icon:'🧊',type:'blue',title:'Freeze all revolving cards',body:`You have ${revolving.length} active revolving accounts. Stop all new purchases on Maya CC, Salmon Credit, CIMB Revi, and Atome Card. Pay minimum + extra only.`});
+  if(totalExp>100000) recs.push({icon:'✂️',type:'amber',title:'Living expenses are high (₱'+f(totalExp)+'/mo)',body:'Review farm salaries, utilities, and household costs. Even reducing by ₱10,000/mo frees ₱120,000/year for debt payoff.'});
+  recs.push({icon:'🎯',type:'green',title:'Snowball strategy: focus on one debt at a time',body:'Pay minimums on everything, then put all extra cash on the debt with the fewest months left. When it\'s done, roll that payment into the next one.'});
+
+  const recColors={danger:'var(--red-light)',amber:'var(--amber-light)',blue:'var(--blue-light)',green:'var(--green-light)'};
+  const recTextColors={danger:'var(--red)',amber:'var(--amber)',blue:'var(--blue)',green:'var(--green)'};
 
   document.getElementById('main').innerHTML=`
     <div class="greeting">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
     <div class="sub-date">${now.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
 
-    <div class="sec-hd"><div class="sec-title">📊 Overall debt</div></div>
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-label">Total remaining</div><div class="kpi-value danger">₱${f(total)}</div></div>
-      <div class="kpi"><div class="kpi-label">Paid off</div><div class="kpi-value success">₱${f(paidAmt)}</div></div>
-      <div class="kpi"><div class="kpi-label">Active debts</div><div class="kpi-value">${active}</div></div>
-      <div class="kpi"><div class="kpi-label">Finishing ≤2mo</div><div class="kpi-value warn">${finishing}</div></div>
-    </div>
-    <div class="progress-wrap">
-      <div class="progress-label"><span class="pl">Overall payoff progress</span><span class="pr">${pct.toFixed(1)}%</span></div>
+    <!-- OVERALL -->
+    <div class="sec-hd"><div class="sec-title">📊 Overall debt</div><span class="sec-count">₱${f(total)} remaining</span></div>
+    <div class="progress-wrap" style="margin-bottom:1rem">
+      <div class="progress-label"><span class="pl">Payoff progress</span><span class="pr">${pct.toFixed(1)}% cleared</span></div>
       <div class="bar-bg"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
     </div>
 
-    <div class="sec-hd">
-      <div class="sec-title">📅 ${now.toLocaleDateString('en-PH',{month:'long',year:'numeric'})}</div>
-      <button class="fpill on" onclick="openIncomeModal()">+ Add income</button>
-    </div>
+    <!-- 5 CATEGORY BREAKDOWN -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem">${catCards}</div>
 
+    <!-- RECOMMENDATIONS -->
+    <div class="sec-hd"><div class="sec-title">💡 Recommendations</div></div>
+    ${recs.map(r=>`<div style="background:${recColors[r.type]};border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;border-left:4px solid ${recTextColors[r.type]}">
+      <div style="font-size:13px;font-weight:800;color:${recTextColors[r.type]};margin-bottom:4px">${r.icon} ${r.title}</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5">${r.body}</div>
+    </div>`).join('')}
+
+    <!-- CURRENT MONTH -->
+    <div class="sec-hd" style="margin-top:.5rem">
+      <div class="sec-title">📅 ${cm.label}</div>
+      <button class="fpill on" style="font-size:10px" onclick="openIncomeModal()">+ Income</button>
+    </div>
     <div class="detail-box" style="margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:10px">Income vs payments</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px">Monthly income</span>
-        <span style="font-size:14px;font-weight:800;color:${totalIncome>0?'var(--green)':'var(--amber)'}">
-          ${totalIncome>0?'₱'+f(totalIncome):'Not set — tap Add income ↑'}
-        </span>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+        <div style="text-align:center;padding:8px 4px;background:var(--green-light);border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--green)">INCOME</div>
+          <div style="font-size:13px;font-weight:800;color:var(--green)">₱${f(cm.income)}</div>
+        </div>
+        <div style="text-align:center;padding:8px 4px;background:var(--red-light);border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--red)">DUE</div>
+          <div style="font-size:13px;font-weight:800;color:var(--red)">₱${f(cm.totalDue)}</div>
+        </div>
+        <div style="text-align:center;padding:8px 4px;background:var(--green-light);border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--green)">PAID ✓</div>
+          <div style="font-size:13px;font-weight:800;color:var(--green)">₱${f(cm.paidAmt)}</div>
+        </div>
+        <div style="text-align:center;padding:8px 4px;background:${cm.cashLeft>=0?'var(--green-light)':'var(--red-light)'};border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">LEFT</div>
+          <div style="font-size:13px;font-weight:800;color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">${cm.cashLeft<0?'−':''}₱${f(Math.abs(cm.cashLeft))}</div>
+        </div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px">Total due this month</span>
-        <span style="font-size:14px;font-weight:800;color:var(--red)">−₱${f(totalDue)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px">Already paid ✓</span>
-        <span style="font-size:14px;font-weight:800;color:var(--green)">₱${f(paidMonthAmt)} <span style="font-size:10px;color:var(--text-light)">(${paidMonth.length} debts)</span></span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span style="font-size:13px;font-weight:700">Still to pay</span>
-        <span style="font-size:14px;font-weight:800;color:${unpaid>0?'var(--amber)':'var(--green)'}">₱${f(unpaid)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
-        <span style="font-size:14px;font-weight:700;color:var(--navy)">Remaining cash</span>
-        <span style="font-size:20px;font-weight:800;color:${remaining>=0?'var(--green)':'var(--red)'}">${remaining<0?'−':''}₱${f(Math.abs(remaining))}</span>
-      </div>
-      ${remaining<0?`<div style="font-size:11px;color:var(--red);margin-top:2px">⚠️ Debt payments exceed income this month by ₱${f(Math.abs(remaining))}. Review priorities.</div>`:''}
+      ${dueListHTML(cm,true)}
     </div>
 
-    <div class="detail-box" style="margin-bottom:1.25rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">This month's dues</div>
-        <span class="tag ${urgentCount>0?'tag-red':'tag-green'}">${urgentCount>0?urgentCount+' due soon':'✅ All clear'}</span>
-      </div>
-      ${dueList}
-    </div>
-
-    <div class="sec-hd"><div class="sec-title">Phase breakdown</div></div>
-    ${phCards}
-  `;
-}
-
-// ── DEBTS ─────────────────────────────────────────────────────────
-async function renderDebts(){
-  const all=await getAll('debts');
-  const catMap={all:'All',1:'🏠 Property',2:'🚗 Vehicle',3:'💵 Cash Loans',4:'💳 Revolving',5:'📦 BNPL',paid:'✅ Paid'};
-  let items=activeFilter==='paid'?all.filter(d=>d.paid):activeFilter==='all'?all.filter(d=>!d.paid):all.filter(d=>d.cat==activeFilter&&!d.paid);
-  if(activeSort==='balance_desc')items.sort((a,b)=>n(b.balance)-n(a.balance));
-  else if(activeSort==='balance_asc')items.sort((a,b)=>n(a.balance)-n(b.balance));
-  else if(activeSort==='months_asc')items.sort((a,b)=>(n(a.monthsLeft)||999)-(n(b.monthsLeft)||999));
-  else if(activeSort==='due_date')items.sort((a,b)=>{if(!a.nextDue)return 1;if(!b.nextDue)return -1;return new Date(a.nextDue)-new Date(b.nextDue);});
-  else items.sort((a,b)=>n(a.phase)-n(b.phase)||n(a.tier)-n(b.tier));
-
-  const activeDebts=all.filter(d=>!d.paid);
-  const totalActive=activeDebts.reduce((s,d)=>s+n(d.balance),0);
-
-  document.getElementById('main').innerHTML=`
+    <!-- NEXT MONTH -->
     <div class="sec-hd">
-      <div class="sec-title">All debts</div>
-      <span class="sec-count">${all.length} · ₱${f(totalActive)}</span>
+      <div class="sec-title">📅 ${nm.label}</div>
+      <span class="tag tag-blue">Upcoming</span>
     </div>
-    <div class="filters">${Object.entries(catMap).map(([k,v])=>`<button class="fpill${activeFilter==k?' on':''}" onclick="setFilter('${k}')">${v}</button>`).join('')}</div>
-    <div class="sort-row"><label>Sort</label>
-      <select onchange="setSort(this.value)">
-        <option value="phase" ${activeSort==='phase'?'selected':''}>Phase / Priority</option>
-        <option value="due_date" ${activeSort==='due_date'?'selected':''}>Next due date</option>
-        <option value="months_asc" ${activeSort==='months_asc'?'selected':''}>Months left ↑</option>
-        <option value="balance_desc" ${activeSort==='balance_desc'?'selected':''}>Balance ↓</option>
-        <option value="balance_asc" ${activeSort==='balance_asc'?'selected':''}>Balance ↑</option>
-      </select>
-    </div>
-    ${items.length===0?emptyHTML('📋','No debts here','Tap + to add one'):items.map(d=>debtCard(d)).join('')}
-  `;
-}
-
-function debtCard(d){
-  const ac={1:'t1',2:'t2',3:'t3',4:'t4',5:'t5'}[d.cat]||'t3';
-  const tl={1:'🏠',2:'🚗',3:'💵',4:'💳',5:'📦'}[d.cat]||'💵';
-  const pl={1:'P1',2:'P2',3:'P3',4:'P4'}[d.phase]||'';
-  const today=new Date();today.setHours(0,0,0,0);
-  let dueTag='';
-  if(d.nextDue&&!d.paid){
-    const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
-    const dl=Math.ceil((dd-today)/(1000*60*60*24));
-    if(dl<=7)dueTag=`<span class="tag ${dl<0?'tag-red':dl===0?'tag-red':dl<=3?'tag-amber':'tag-blue'}">${dl<0?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d'}</span>`;
-  }
-  const moTag=n(d.monthsLeft)>0?`<span class="tag ${n(d.monthsLeft)<=2?'tag-red':n(d.monthsLeft)<=5?'tag-amber':'tag-gray'}">${d.monthsLeft}mo</span>`:'';
-  return `<div class="dcard${d.paid?' paid':''}" onclick="viewDebt('${d.id}')">
-    <div class="dcard-accent ${ac}"></div>
-    <div class="dcard-inner">
-      <div class="dcard-top">
-        <div style="min-width:0">
-          <div class="dcard-name">${tl} ${d.name}</div>
-          <div class="dcard-meta">${d.dueDay||'—'} ${d.nextDue?'· '+d.nextDue:''}</div>
+    <div class="detail-box" style="margin-bottom:1.25rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+        <div style="text-align:center;padding:8px 4px;background:var(--green-light);border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--green)">EST. INCOME</div>
+          <div style="font-size:13px;font-weight:800;color:var(--green)">₱${f(nm.income)}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
-          <div class="dcard-bal">₱${f(d.balance)}</div>
-          <button class="paid-toggle${d.paid?' done':''}" onclick="togglePaid('${d.id}',${!!d.paid},event)">✓</button>
+        <div style="text-align:center;padding:8px 4px;background:var(--red-light);border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--red)">DUE</div>
+          <div style="font-size:13px;font-weight:800;color:var(--red)">₱${f(nm.totalDue)}</div>
+        </div>
+        <div style="text-align:center;padding:8px 4px;background:${nm.cashLeft>=0?'var(--green-light)':'var(--red-light)'};border-radius:8px">
+          <div style="font-size:10px;font-weight:700;color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">PROJECTED LEFT</div>
+          <div style="font-size:13px;font-weight:800;color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">${nm.cashLeft<0?'−':''}₱${f(Math.abs(nm.cashLeft))}</div>
         </div>
       </div>
-      <div class="dcard-tags">
-        ${moTag}
-        ${d.monthlyPay?`<span class="tag tag-gray">₱${f(d.monthlyPay)}/mo</span>`:''}
-        <span class="tag tag-navy">${pl}</span>
-        ${dueTag}
-        ${d.rate==='HIGH'?'<span class="tag tag-red">HIGH INTEREST</span>':''}
-      </div>
-    </div>
-  </div>`;
-}
-
-window.setFilter=async f=>{activeFilter=f;await renderDebts();};
-window.setSort=async s=>{activeSort=s;await renderDebts();};
-window.togglePaid=async(id,curr,e)=>{
-  e.stopPropagation();
-  try{await upd('debts',id,{paid:!curr});toast(curr?'↩️ Marked outstanding':'✅ Marked paid!');await renderDebts();}
-  catch{toast('❌ Could not update');}
-};
-
-// ── DEBT DETAIL ────────────────────────────────────────────────────
-window.viewDebt=async id=>{
-  document.getElementById('fab').style.display='none';
-  document.getElementById('main').innerHTML='<div class="spinner"></div>';
-  const all=await getAll('debts');
-  const d=all.find(x=>x.id===id);
-  if(!d){await showView('debts');return;}
-  const grads={1:'linear-gradient(135deg,#1E7E45,#27AE60)',2:'linear-gradient(135deg,#1565C0,#1E88E5)',3:'linear-gradient(135deg,#D4870D,#F39C12)',4:'linear-gradient(135deg,#C0392B,#E74C3C)',5:'linear-gradient(135deg,#7B3FA0,#9B59B6)'};
-  const catNames={1:'Real Estate / Property',2:'Vehicle Loan',3:'Cash / Digital Loan',4:'Revolving Credit',5:'BNPL / Installment'};
-  document.getElementById('main').innerHTML=`
-    <button class="back-btn" onclick="showView('debts')">← Back</button>
-    <div class="detail-hero" style="background:${grads[d.cat]||grads[3]}">
-      <div style="font-size:36px;margin-bottom:8px">💳</div>
-      <div style="font-size:21px;font-weight:800;color:#fff">${d.name}</div>
-      <div style="font-size:12px;opacity:.7;margin-top:4px;color:#fff">${catNames[d.cat]||''} · Phase ${d.phase||'—'}</div>
-    </div>
-    <div class="detail-box">
-      <div class="detail-row"><div class="detail-key">Balance</div><div class="detail-val big" style="color:var(--red)">₱${f(d.balance)}</div></div>
-      <div class="detail-row"><div class="detail-key">Monthly payment</div><div class="detail-val">${d.monthlyPay?'₱'+f(d.monthlyPay):'TBC'}</div></div>
-      <div class="detail-row"><div class="detail-key">Months left</div><div class="detail-val">${d.monthsLeft||'TBC'}</div></div>
-      <div class="detail-row"><div class="detail-key">Due day</div><div class="detail-val">${d.dueDay||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Next due date</div><div class="detail-val" style="font-weight:700;color:var(--red)">${d.nextDue||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Interest / rate</div><div class="detail-val">${d.rate||'TBC'}</div></div>
-      <div class="detail-row"><div class="detail-key">Secured?</div><div class="detail-val">${d.secured?'Yes — asset-linked':'No'}</div></div>
-      <div class="detail-row"><div class="detail-key">Priority action</div><div class="detail-val" style="font-weight:700;color:var(--navy)">${d.action||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Status</div><div class="detail-val">${d.paid?'✅ Paid this month':'🔴 Outstanding'}</div></div>
-      ${d.notes?`<div class="detail-row"><div class="detail-key">Notes</div><div class="detail-val">${d.notes}</div></div>`:''}
-    </div>
-    <div style="display:flex;gap:10px">
-      <button class="btn btn-outline" style="flex:1" onclick="openEdit('debts','${d.id}')">✏️ Edit</button>
-      <button class="btn btn-danger-soft" style="flex:1" onclick="confirmDel('debts','${d.id}','${d.name.replace(/'/g,"\\'")}')">🗑 Delete</button>
+      ${dueListHTML(nm,false)}
     </div>
   `;
-};
-
+}
 // ── LIVING EXPENSES ────────────────────────────────────────────────
 async function renderExpenses(){
   const all=await getAll('expenses');
   const total=all.reduce((s,e)=>s+n(e.amount),0);
-  const cats=['Housing','Utilities','Food','Farm','Household','Transport','Government'];
+  const cats=[
+    {key:'Housing',icon:'🏡',color:'#1E7E45'},
+    {key:'Utilities',icon:'⚡',color:'#1565C0'},
+    {key:'Food',icon:'🍚',color:'#D4870D'},
+    {key:'Farm',icon:'🌾',color:'#5D8A2F'},
+    {key:'Household',icon:'🏠',color:'#7B3FA0'},
+    {key:'Transport',icon:'⛽',color:'#2E86AB'},
+    {key:'Government',icon:'🏛️',color:'#4A4A6A'},
+    {key:'Other',icon:'📌',color:'#888'},
+  ];
   document.getElementById('main').innerHTML=`
     <div class="sec-hd">
       <div class="sec-title">🏠 Living expenses</div>
       <span class="sec-count">₱${f(total)}/mo</span>
     </div>
-    <div class="alert-box alert-amber" style="margin-bottom:1rem">
-      <div class="alert-title" style="color:var(--amber)">These are recurring monthly obligations — not debts</div>
-      <div style="font-size:12px;color:var(--text)">They reduce your available cash for debt payments. Keep them as lean as possible.</div>
+    <div style="background:var(--amber-light);border:1px solid rgba(212,135,13,.2);border-radius:12px;padding:.875rem 1rem;margin-bottom:1rem">
+      <div style="font-size:12px;font-weight:800;color:var(--amber);margin-bottom:3px">These reduce your debt-paying power</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5">These are recurring obligations — not debts. Tap any item to edit the amount. Tap + to add a new expense.</div>
     </div>
-    ${cats.map(cat=>{
-      const items=all.filter(e=>e.category===cat);
+    ${cats.map(c=>{
+      const items=all.filter(e=>(e.category||'Other')===c.key);
       if(items.length===0)return'';
-      const catTotal=items.reduce((s,e)=>s+n(e.amount),0);
-      return `<div class="sec-hd" style="margin-top:.5rem"><div class="sec-title" style="font-size:12px">${cat}</div><span style="font-size:12px;font-weight:700;color:var(--text-mid)">₱${f(catTotal)}</span></div>
-      ${items.map(e=>`<div class="dcard" onclick="viewExpense('${e.id}')">
-        <div class="dcard-inner" style="padding-left:0">
-          <div class="dcard-top">
-            <div><div class="dcard-name" style="font-size:13px">${e.name}</div><div class="dcard-meta">${e.dueDay||'—'}</div></div>
-            <div style="font-size:14px;font-weight:800;color:var(--text-mid)">₱${f(e.amount)}</div>
-          </div>
+      const ct=items.reduce((s,e)=>s+n(e.amount),0);
+      return `<div style="margin-bottom:.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.icon} ${c.key}</div>
+          <span style="font-size:12px;font-weight:800;color:${c.color}">₱${f(ct)}/mo</span>
         </div>
-      </div>`).join('')}`;
+        ${items.map(e=>`<div class="dcard" style="margin-bottom:6px" onclick="viewExpense('${e.id}')">
+          <div class="dcard-inner" style="padding-left:0">
+            <div class="dcard-top">
+              <div style="min-width:0">
+                <div style="font-size:13px;font-weight:700">${e.name}</div>
+                <div style="font-size:11px;color:var(--text-light)">${e.dueDay||'No due date set'} ${e.recurring?'· Recurring':''}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div style="font-size:14px;font-weight:800;color:${c.color}">₱${f(e.amount)}</div>
+                <div style="font-size:10px;color:var(--text-light)">per month</div>
+              </div>
+            </div>
+            ${e.notes?`<div style="font-size:11px;color:var(--text-light);margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">${e.notes}</div>`:''}
+          </div>
+        </div>`).join('')}
+      </div>`;
     }).join('')}
-    <div class="budget-total" style="margin-top:1rem">
-      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Total monthly expenses</span>
+    <div class="budget-total" style="margin-top:.5rem">
+      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Total monthly living expenses</span>
       <span style="font-size:18px;font-weight:800;color:#fff">₱${f(total)}</span>
     </div>
+    ${all.length===0?`<div style="text-align:center;padding:2rem 1rem;color:var(--text-light)">
+      <div style="font-size:40px;margin-bottom:.5rem">🏠</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text-mid)">No living expenses yet</div>
+      <div style="font-size:12px;margin-top:4px">Tap + to add your recurring expenses</div>
+    </div>`:''}
   `;
 }
 
