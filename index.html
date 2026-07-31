@@ -198,7 +198,7 @@ textarea.fi{resize:vertical;min-height:65px}
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, query, orderBy, serverTimestamp }
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -325,31 +325,56 @@ function authMsg(c){return({'auth/user-not-found':'No account with that email.',
 // ── PROFILE & SEED ────────────────────────────────────────────────
 async function loadProfile() {
   const snap=await getDoc(doc(db,'users',user.uid));
-  if(!snap.exists()){profile={name:user.email.split('@')[0],seeded:false};await setDoc(doc(db,'users',user.uid),{...profile,email:user.email,createdAt:serverTimestamp()});}
-  else{profile=snap.data();}
-  if(!profile.seeded){await seedAll();await updateDoc(doc(db,'users',user.uid),{seeded:true});profile.seeded=true;}
-}
-async function seedAll(){
-  const [dSnap,eSnap]=await Promise.all([getDocs(collection(db,'users',user.uid,'debts')),getDocs(collection(db,'users',user.uid,'expenses'))]);
-  if(dSnap.empty){
-    const b=writeBatch(db);
-    SEED_DEBTS.forEach(d=>{const r=doc(collection(db,'users',user.uid,'debts'));b.set(r,{...d,createdAt:serverTimestamp()});});
-    await b.commit();
+  if(!snap.exists()){
+    profile={name:user.email.split('@')[0],seededDebts:false,seededExpenses:false};
+    await setDoc(doc(db,'users',user.uid),{...profile,email:user.email,createdAt:serverTimestamp()});
+  } else {
+    profile=snap.data();
   }
+  // Seed debts if not yet seeded
+  if(!profile.seededDebts){
+    const dSnap=await getDocs(collection(db,'users',user.uid,'debts'));
+    if(dSnap.empty){
+      const b=writeBatch(db);
+      SEED_DEBTS.forEach(d=>{const r=doc(collection(db,'users',user.uid,'debts'));b.set(r,{...d,createdAt:serverTimestamp()});});
+      await b.commit();
+    }
+    await updateDoc(doc(db,'users',user.uid),{seededDebts:true});
+    profile.seededDebts=true;
+  }
+  // Seed expenses independently — always check if empty
+  const eSnap=await getDocs(collection(db,'users',user.uid,'expenses'));
   if(eSnap.empty){
     const b=writeBatch(db);
     SEED_EXPENSES.forEach(e=>{const r=doc(collection(db,'users',user.uid,'expenses'));b.set(r,{...e,createdAt:serverTimestamp()});});
     await b.commit();
+    await updateDoc(doc(db,'users',user.uid),{seededExpenses:true});
+    profile.seededExpenses=true;
   }
 }
 
 // ── FIRESTORE ─────────────────────────────────────────────────────
 function col(name){return collection(db,'users',user.uid,name);}
-async function getAll(name){const s=await getDocs(query(col(name),orderBy('createdAt','asc')));return s.docs.map(d=>({id:d.id,...d.data()}));}
+async function getAll(name){
+  // No orderBy to avoid Firestore index requirements on subcollections
+  const s=await getDocs(col(name));
+  return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+    const ta=a.createdAt?.seconds||0, tb=b.createdAt?.seconds||0;
+    return ta-tb;
+  });
+}
 async function add(name,data){return await addDoc(col(name),{...data,createdAt:serverTimestamp()});}
 async function upd(name,id,data){await updateDoc(doc(db,'users',user.uid,name,id),data);}
 async function del(name,id){await deleteDoc(doc(db,'users',user.uid,name,id));}
-async function getAllIncome(){try{const s=await getDocs(query(col('income'),orderBy('createdAt','desc')));return s.docs.map(d=>({id:d.id,...d.data()}));}catch{return[];}}
+async function getAllIncome(){
+  try{
+    const s=await getDocs(col('income'));
+    return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const ta=a.createdAt?.seconds||0, tb=b.createdAt?.seconds||0;
+      return tb-ta; // newest first
+    });
+  }catch{return[];}
+}
 function monthKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
 function mkLabel(k){const[y,m]=k.split('-');return new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'long',year:'numeric'});}
 
