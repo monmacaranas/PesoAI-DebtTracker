@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peso AI — Debt Tracker</title>
+<style>
+:root {
+  --navy: #1A2744;
+  --navy-mid: #243158;
+  --gold: #C8873A;
+  --gold-light: #F5DEB3;
+  --red: #C0392B;
+  --red-light: #FDECEA;
+  --green: #1E7E45;
+  --green-light: #D4EDDA;
+  --amber: #D4870D;
+  --amber-light: #FFF3CD;
+  --blue: #1565C0;
+  --blue-light: #E3F2FD;
+  --cream: #F8F5F0;
+  --parchment: #EEE8DC;
+  --white: #FFFFFF;
+  --text: #1A1A2E;
+  --text-mid: #4A4A6A;
+  --text-light: #8A8AAA;
+  --border: rgba(26,39,68,0.12);
+  --shadow: 0 2px 12px rgba(26,39,68,0.10);
+  --radius: 16px;
+  --rsm: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto}
+
+/* AUTH */
+#auth-screen{min-height:100vh;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-mid) 60%,#2D4A8A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;gap:0}
+.auth-logo{font-size:64px;margin-bottom:.5rem}
+.auth-title{font-size:30px;font-weight:800;color:var(--white);letter-spacing:-0.5px}
+.auth-tagline{font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:2rem}
+.auth-card{background:var(--white);border-radius:24px;padding:1.75rem;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.25)}
+.auth-tabs{display:flex;background:var(--parchment);border-radius:var(--rsm);padding:4px;margin-bottom:1.5rem}
+.auth-tab{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-size:14px;font-weight:600;color:var(--text-light);cursor:pointer;transition:all .2s;font-family:inherit}
+.auth-tab.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.fl{margin-bottom:1rem}
+.fl label{font-size:11px;font-weight:700;color:var(--text-mid);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.05em}
+.fi{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:15px;background:var(--cream);color:var(--text);outline:none;transition:border-color .2s;font-family:inherit}
+.fi:focus{border-color:var(--navy);background:var(--white)}
+select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%234A4A6A' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+textarea.fi{resize:vertical;min-height:70px}
+.btn{width:100%;padding:14px;border:none;border-radius:var(--rsm);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-navy{background:var(--navy);color:var(--white)}
+.btn-navy:hover{background:var(--navy-mid);transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text-mid)}
+.btn-outline:hover{border-color:var(--navy);color:var(--navy)}
+.btn-danger-soft{background:var(--red-light);color:var(--red);border:none}
+.btn-danger-soft:hover{background:#F5C6C2}
+.auth-err{font-size:13px;color:var(--red);text-align:center;margin-top:10px;min-height:18px}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+.hdr{background:var(--navy);padding:1rem 1.25rem .75rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.hdr-row{display:flex;align-items:center;justify-content:space-between}
+.hdr-brand{display:flex;align-items:center;gap:8px}
+.hdr-logo{font-size:24px}
+.hdr-name{font-size:18px;font-weight:800;color:var(--white);letter-spacing:-.3px}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.55)}
+.hdr-actions{display:flex;gap:6px}
+.icn-btn{width:34px;height:34px;border:1.5px solid rgba(255,255,255,.2);border-radius:50%;background:transparent;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:background .2s}
+.icn-btn:hover{background:rgba(255,255,255,.12)}
+
+/* NAV */
+.nav{display:flex;background:var(--navy);padding:0 .75rem;border-top:1px solid rgba(255,255,255,.08);margin-top:8px}
+.ntab{flex:1;padding:9px 4px 7px;border:none;background:transparent;color:rgba(255,255,255,.45);font-size:10px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-align:center;font-family:inherit;letter-spacing:.03em;text-transform:uppercase}
+.ntab .ti{font-size:18px;display:block;margin-bottom:2px}
+.ntab.active{color:var(--white);border-bottom-color:var(--gold)}
+
+/* CONTENT */
+.content{flex:1;padding:1.25rem;padding-bottom:5rem}
+
+/* FAB */
+.fab{position:fixed;bottom:1.5rem;right:1.5rem;width:54px;height:54px;background:var(--gold);border:none;border-radius:50%;color:var(--white);font-size:26px;cursor:pointer;box-shadow:0 4px 18px rgba(200,135,58,.5);display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:200}
+.fab:hover{transform:scale(1.08) translateY(-2px)}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.open{opacity:1;pointer-events:all}
+.sheet{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:1.5rem;max-height:92vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.overlay.open .sheet{transform:translateY(0)}
+.pill{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 1.25rem}
+.modal-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:1.25rem}
+.modal-actions{display:flex;gap:10px;margin-top:1rem}
+.modal-actions .btn{flex:1}
+
+/* DASHBOARD */
+.greeting{font-size:21px;font-weight:800;color:var(--text);margin-bottom:2px}
+.sub-date{font-size:13px;color:var(--text-light);margin-bottom:1.25rem}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem}
+.kpi{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border)}
+.kpi-label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.kpi-value{font-size:22px;font-weight:800;color:var(--text)}
+.kpi-value.danger{color:var(--red)}
+.kpi-value.success{color:var(--green)}
+.kpi-value.warn{color:var(--amber)}
+
+/* PROGRESS */
+.progress-wrap{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:1.25rem}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}
+.progress-label .pl{font-weight:700;color:var(--text-mid)}
+.progress-label .pr{color:var(--text-light)}
+.bar-bg{background:var(--parchment);border-radius:99px;height:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#2ECC71);transition:width .5s}
+
+/* URGENCY BANNER */
+.banner{border-radius:var(--radius);padding:1rem 1.125rem;margin-bottom:1.25rem}
+.banner-red{background:var(--red-light);border:1px solid rgba(192,57,43,.2)}
+.banner-title{font-size:13px;font-weight:800;color:var(--red);margin-bottom:8px}
+.banner-item{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;line-height:1.4}
+.banner-item:last-child{margin-bottom:0}
+
+/* SECTION */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.sec-title{font-size:15px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.04em}
+.sec-count{font-size:12px;color:var(--text-light);background:var(--parchment);padding:3px 10px;border-radius:99px;font-weight:600}
+
+/* DEBT CARDS */
+.dcard{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+.dcard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,39,68,.13)}
+.dcard.paid{opacity:.45}
+.dcard-accent{position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:var(--radius) 0 0 var(--radius)}
+.dcard-inner{padding-left:10px}
+.dcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.dcard-name{font-size:15px;font-weight:700;color:var(--text)}
+.dcard-bal{font-size:15px;font-weight:800;color:var(--text);white-space:nowrap}
+.dcard-meta{font-size:12px;color:var(--text-light);margin-top:3px}
+.dcard-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+
+/* TAGS */
+.tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;display:inline-flex;align-items:center;gap:4px}
+.tag-red{background:var(--red-light);color:var(--red)}
+.tag-amber{background:var(--amber-light);color:var(--amber)}
+.tag-blue{background:var(--blue-light);color:var(--blue)}
+.tag-green{background:var(--green-light);color:var(--green)}
+.tag-gray{background:var(--parchment);color:var(--text-mid)}
+
+/* TIER COLORS */
+.t1-accent{background:var(--red)}
+.t2-accent{background:var(--amber)}
+.t3-accent{background:var(--blue)}
+.t4-accent{background:var(--green)}
+
+/* DETAIL */
+.back-btn{display:flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--navy);font-size:14px;font-weight:700;cursor:pointer;padding:0;margin-bottom:1rem;font-family:inherit}
+.detail-hero{border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;color:var(--white)}
+.detail-hero-emoji{font-size:40px;margin-bottom:8px}
+.detail-hero-name{font-size:22px;font-weight:800}
+.detail-hero-sub{font-size:13px;opacity:.7;margin-top:4px}
+.detail-box{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px}
+.detail-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
+.detail-row:last-child{border-bottom:none;padding-bottom:0}
+.detail-key{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;padding-top:1px}
+.detail-val{font-size:14px;color:var(--text);text-align:right;word-break:break-word}
+.detail-val.big{font-size:20px;font-weight:800}
+
+/* SNOWBALL */
+.sb-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.sb-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;background:var(--parchment);color:var(--text-mid);border:2px solid var(--border)}
+.sb-dot.done{background:var(--green-light);color:var(--green);border-color:var(--green)}
+.sb-line{width:2px;height:20px;background:var(--border);margin:4px auto;flex-shrink:0;margin-left:13px}
+.sb-body{flex:1;padding-bottom:10px}
+.sb-name{font-size:14px;font-weight:700;color:var(--text)}
+.sb-detail{font-size:12px;color:var(--text-light);margin-top:2px}
+.sb-freed{font-size:12px;color:var(--green);font-weight:700;margin-top:4px}
+
+/* SETTINGS */
+.config-box{background:var(--amber-light);border:1px solid rgba(212,135,13,.3);border-radius:var(--radius);padding:1rem 1.125rem;margin-bottom:1rem;font-size:13px;color:var(--text);line-height:1.6}
+.config-box strong{color:var(--amber)}
+.config-box code{font-size:11px;background:rgba(255,255,255,.7);padding:2px 6px;border-radius:4px;font-family:monospace}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem 1rem;color:var(--text-light)}
+.empty-icon{font-size:48px;margin-bottom:.5rem}
+.empty-text{font-size:15px;font-weight:600;color:var(--text-mid)}
+.empty-hint{font-size:13px;margin-top:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:var(--white);padding:10px 20px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* BUDGET */
+.budget-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.budget-row:last-child{border-bottom:none}
+.budget-label{font-size:14px;color:var(--text)}
+.budget-amount{font-size:14px;font-weight:800}
+.budget-total{background:var(--navy);border-radius:var(--rsm);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+
+/* SPINNER */
+.spinner{width:32px;height:32px;border:3px solid var(--parchment);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:3rem auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FILTER PILLS */
+.filters{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.fpill{padding:6px 14px;border:1.5px solid var(--border);background:var(--white);border-radius:99px;font-size:12px;font-weight:700;color:var(--text-light);cursor:pointer;font-family:inherit;transition:all .15s}
+.fpill.on{background:var(--navy);color:var(--white);border-color:var(--navy)}
+
+/* PAID TOGGLE */
+.paid-toggle{width:28px;height:28px;border:1.5px solid var(--border);border-radius:50%;background:var(--cream);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.paid-toggle.done{background:var(--green-light);border-color:var(--green);color:var(--green)}
+
+.demo-notice{background:var(--amber-light);border:1px solid rgba(212,135,13,.3);border-radius:var(--rsm);padding:10px 14px;font-size:12px;color:var(--text-mid);margin-bottom:1rem;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-logo">💸</div>
+  <div class="auth-title">Peso AI</div>
+  <div class="auth-tagline">Your personal debt freedom tracker</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign in</button>
+      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+    </div>
+    <div id="lf">
+      <div class="fl"><label>Email</label><input class="fi" id="le" type="email" placeholder="you@email.com"></div>
+      <div class="fl"><label>Password</label><input class="fi" id="lp" type="password" placeholder="••••••••"></div>
+      <button class="btn btn-navy" onclick="doLogin()">Sign in</button>
+    </div>
+    <div id="rf" style="display:none">
+      <div class="fl"><label>Your name</label><input class="fi" id="rn" type="text" placeholder="Juan dela Cruz"></div>
+      <div class="fl"><label>Email</label><input class="fi" id="re" type="email" placeholder="you@email.com"></div>
+      <div class="fl"><label>Password</label><input class="fi" id="rp" type="password" placeholder="Min. 6 characters"></div>
+      <button class="btn btn-navy" onclick="doRegister()">Create account</button>
+    </div>
+    <div class="auth-err" id="auth-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="hdr-brand">
+        <span class="hdr-logo">💸</span>
+        <div>
+          <div class="hdr-name">Peso AI</div>
+          <div class="hdr-sub" id="hdr-sub">Debt Tracker</div>
+        </div>
+      </div>
+      <div class="hdr-actions">
+        <button class="icn-btn" onclick="showView('settings')" title="Settings">⚙️</button>
+        <button class="icn-btn" onclick="doLogout()" title="Sign out">🚪</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="ntab active" id="nav-dashboard" onclick="showView('dashboard')"><span class="ti">🏠</span>Home</button>
+      <button class="ntab" id="nav-debts" onclick="showView('debts')"><span class="ti">📋</span>Debts</button>
+      <button class="ntab" id="nav-snowball" onclick="showView('snowball')"><span class="ti">⛄</span>Snowball</button>
+      <button class="ntab" id="nav-budget" onclick="showView('budget')"><span class="ti">💰</span>Budget</button>
+    </div>
+  </div>
+  <div class="content" id="main"></div>
+  <button class="fab" id="fab" onclick="openAdd()" title="Add debt">＋</button>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="tryClose(event)">
+  <div class="sheet">
+    <div class="pill"></div>
+    <div class="modal-title" id="modal-title">Add debt</div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// ══ PASTE YOUR FIREBASE CONFIG HERE ══════════════════════════════
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+  projectId: "PASTE_YOUR_PROJECT_ID",
+  storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+  messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
+};
+// ═════════════════════════════════════════════════════════════════
+
+const DEMO = firebaseConfig.apiKey === "PASTE_YOUR_API_KEY";
+
+let fbApp, auth, db, user, userProfile;
+let activeView = 'dashboard';
+let activeFilter = 'all';
+let paidIds = {};
+let editingId = null;
+
+// ── DEMO DATA ────────────────────────────────────────────────────
+const demo = [
+  {id:'d1',tier:1,name:'Anchoridge',balance:40278,due:'TBD',monthsLeft:28,monthlyPay:1439,rate:'TBD',secured:true,phase:4,action:'Keep current',notes:'Long-term secured loan',status:'current'},
+  {id:'d2',tier:1,name:'Wheeltek',balance:6500,due:'Every 2nd',monthsLeft:9,monthlyPay:722,rate:'TBD',secured:true,phase:1,action:'Keep current',notes:'Asset-linked motorcycle',status:'current'},
+  {id:'d3',tier:1,name:'San Jose Koop',balance:27000,due:'TBD',monthsLeft:32,monthlyPay:844,rate:'TBD',secured:true,phase:4,action:'Keep current',notes:'Longest horizon',status:'current'},
+  {id:'d4',tier:2,name:'Salmon Loan',balance:5980,due:'Every 11th',monthsLeft:2,monthlyPay:2990,rate:'TBD',secured:false,phase:1,action:'PAY OFF NOW',notes:'Only 2 months left!',status:'current'},
+  {id:'d5',tier:2,name:'CashMart',balance:18414,due:'Jun 30 & Jul 14',monthsLeft:2,monthlyPay:9207,rate:'TBD',secured:false,phase:1,action:'PAY OFF NOW',notes:'2 payments then done',status:'current'},
+  {id:'d6',tier:2,name:'Atome Loan (short)',balance:2540,due:'Every 3rd',monthsLeft:2,monthlyPay:1270,rate:'TBD',secured:false,phase:1,action:'PAY OFF NOW',notes:'Smallest – kill first',status:'current'},
+  {id:'d7',tier:2,name:'CIMB Loan',balance:3959,due:'Every 1st',monthsLeft:4,monthlyPay:990,rate:'TBD',secured:false,phase:1,action:'High priority',notes:'',status:'current'},
+  {id:'d8',tier:2,name:'BillEase',balance:10222,due:'Jul 1, 15 / Aug 3, 17',monthsLeft:6,monthlyPay:1703,rate:'TBD',secured:false,phase:1,action:'Negotiate one date',notes:'Multiple due dates',status:'current'},
+  {id:'d9',tier:2,name:'Ggives',balance:1361,due:'Every 25th',monthsLeft:7,monthlyPay:194,rate:'TBD',secured:false,phase:2,action:'Clear alongside others',notes:'',status:'current'},
+  {id:'d10',tier:2,name:'Colinas',balance:63111,due:'TBD',monthsLeft:5,monthlyPay:12622,rate:'TBD',secured:false,phase:1,action:'Heavy – keep current',notes:'Largest Phase 1 hit',status:'current'},
+  {id:'d11',tier:2,name:'Atome Loan (long)',balance:10236,due:'Every 24th',monthsLeft:5,monthlyPay:2047,rate:'TBD',secured:false,phase:2,action:'Roll Phase 1 cash here',notes:'',status:'current'},
+  {id:'d12',tier:2,name:'JuanHand 1',balance:27237,due:'Jul 8',monthsLeft:null,monthlyPay:null,rate:'TBD',secured:false,phase:2,action:'Confirm minimum',notes:'Jul 7–13 cluster!',status:'current'},
+  {id:'d13',tier:2,name:'JuanHand 2',balance:29697,due:'Jul 7',monthsLeft:null,monthlyPay:null,rate:'TBD',secured:false,phase:2,action:'Negotiate dates',notes:'',status:'current'},
+  {id:'d14',tier:2,name:'JuanHand 3',balance:45765,due:'Jul 13',monthsLeft:null,monthlyPay:null,rate:'TBD',secured:false,phase:2,action:'Largest JuanHand',notes:'',status:'current'},
+  {id:'d15',tier:3,name:'Maya Credit Card',balance:51970,due:'Jul 6',monthsLeft:null,monthlyPay:null,rate:'HIGH',secured:false,phase:3,action:'STOP USING',notes:'High interest – freeze',status:'current'},
+  {id:'d16',tier:3,name:'Atome Card',balance:27826,due:'Jul 4',monthsLeft:null,monthlyPay:null,rate:'HIGH',secured:false,phase:3,action:'Freeze card',notes:'Revolving',status:'current'},
+  {id:'d17',tier:3,name:'CIMB Revi',balance:10000,due:'Every 1st',monthsLeft:12,monthlyPay:null,rate:'HIGH',secured:false,phase:3,action:'Pay min; attack Ph3',notes:'',status:'current'},
+  {id:'d18',tier:3,name:'Salmon Credit',balance:10000,due:'Every 4th',monthsLeft:6,monthlyPay:null,rate:'HIGH',secured:false,phase:3,action:'Pay min; attack Ph3',notes:'',status:'current'},
+  {id:'d19',tier:3,name:'Gcredit',balance:3966,due:'Every 1st',monthsLeft:null,monthlyPay:null,rate:'HIGH',secured:false,phase:2,action:'Small – clear early',notes:'',status:'current'},
+  {id:'d20',tier:4,name:'Maya Loan',balance:20150,due:'Jul 22',monthsLeft:null,monthlyPay:null,rate:'TBD',secured:false,phase:3,action:'Keep current',notes:'',status:'current'},
+  {id:'d21',tier:4,name:'Xpander',balance:36749,due:'TBD',monthsLeft:12,monthlyPay:null,rate:'TBD',secured:false,phase:3,action:'Keep current',notes:'',status:'current'},
+];
+
+// ── INIT ─────────────────────────────────────────────────────────
+if (!DEMO) {
+  fbApp = initializeApp(firebaseConfig);
+  auth = getAuth(fbApp);
+  db = getFirestore(fbApp);
+  onAuthStateChanged(auth, async u => {
+    if (u) {
+      user = u;
+      const snap = await getDoc(doc(db,'users',u.uid));
+      userProfile = snap.exists() ? snap.data() : { name: 'User' };
+      document.getElementById('hdr-sub').textContent = (userProfile.name||'User') + "'s debts";
+      showApp();
+    } else {
+      showAuth();
+    }
+  });
+} else {
+  showDemoApp();
+}
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  showView('dashboard');
+}
+function showDemoApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('hdr-sub').textContent = 'Demo Mode · 21 debts';
+  showView('dashboard');
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────
+window.switchTab = t => {
+  document.getElementById('lf').style.display = t==='login'?'':'none';
+  document.getElementById('rf').style.display = t==='register'?'':'none';
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('auth-err').textContent='';
+};
+
+window.doLogin = async () => {
+  const e=document.getElementById('le').value.trim(), p=document.getElementById('lp').value;
+  const err=document.getElementById('auth-err');
+  try { err.textContent='Signing in…'; await signInWithEmailAndPassword(auth,e,p); }
+  catch(ex){ err.textContent=authMsg(ex.code); }
+};
+
+window.doRegister = async () => {
+  const n=document.getElementById('rn').value.trim(), e=document.getElementById('re').value.trim(), p=document.getElementById('rp').value;
+  const err=document.getElementById('auth-err');
+  if(!n){err.textContent='Please enter your name.';return;}
+  try {
+    err.textContent='Creating account…';
+    const c=await createUserWithEmailAndPassword(auth,e,p);
+    await setDoc(doc(db,'users',c.user.uid),{name:n,email:e,createdAt:serverTimestamp()});
+  } catch(ex){ err.textContent=authMsg(ex.code); }
+};
+
+window.doLogout = async () => {
+  if(DEMO){showAuth();return;}
+  await signOut(auth);
+};
+
+function authMsg(code){
+  return({'auth/user-not-found':'No account with that email.','auth/wrong-password':'Wrong password.','auth/email-already-in-use':'Email already registered.','auth/weak-password':'Password needs 6+ characters.','auth/invalid-email':'Invalid email address.','auth/invalid-credential':'Wrong email or password.'}[code])||'Something went wrong.';
+}
+
+// ── DATA ─────────────────────────────────────────────────────────
+function col(name){ return collection(db,'users',user.uid,name); }
+
+async function getData() {
+  if(DEMO) return [...demo];
+  try {
+    const q=query(col('debts'),orderBy('createdAt','desc'));
+    const s=await getDocs(q);
+    return s.docs.map(d=>({id:d.id,...d.data()}));
+  } catch{ return []; }
+}
+
+async function saveDebt(data) {
+  if(DEMO){ const d={...data,id:'u_'+Date.now(),createdAt:new Date()}; demo.unshift(d); return d.id; }
+  const ref=await addDoc(col('debts'),{...data,createdAt:serverTimestamp()});
+  return ref.id;
+}
+
+async function editDebt(id,data) {
+  if(DEMO){ const i=demo.findIndex(x=>x.id===id); if(i>=0) Object.assign(demo[i],data); return; }
+  await updateDoc(doc(db,'users',user.uid,'debts',id),data);
+}
+
+async function removeDebt(id) {
+  if(DEMO){ const i=demo.findIndex(x=>x.id===id); if(i>=0) demo.splice(i,1); return; }
+  await deleteDoc(doc(db,'users',user.uid,'debts',id));
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────
+window.showView = async (v) => {
+  activeView = v;
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nav-'+v);
+  if(nb) nb.classList.add('active');
+  document.getElementById('fab').style.display = (v==='debts'||v==='dashboard')?'flex':'none';
+  document.getElementById('main').innerHTML = '<div class="spinner"></div>';
+  if(v==='dashboard') await renderDash();
+  else if(v==='debts') await renderDebts();
+  else if(v==='snowball') renderSnowball();
+  else if(v==='budget') renderBudget();
+  else if(v==='settings') renderSettings();
+};
+
+// ── DASHBOARD ─────────────────────────────────────────────────────
+async function renderDash() {
+  const debts = await getData();
+  const total = debts.reduce((s,d)=>s+num(d.balance),0);
+  const paidAmt = debts.filter(d=>paidIds[d.id]).reduce((s,d)=>s+num(d.balance),0);
+  const ready = debts.filter(d=>num(d.monthsLeft)<=2&&num(d.monthsLeft)>0).length;
+  const pct = total>0 ? (paidAmt/total*100) : 0;
+  const hr = new Date().getHours();
+  const uname = DEMO ? 'Ramon' : (userProfile?.name||'').split(' ')[0]||'';
+  const greet = hr<12?'Magandang umaga':'hr<18?Magandang hapon':'Magandang gabi';
+
+  document.getElementById('main').innerHTML = `
+    <div class="greeting">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
+    <div class="sub-date">${new Date().toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
+    ${DEMO?'<div class="demo-notice">🔥 <strong>Demo mode</strong> — paste your Firebase config to save data to the cloud. See Settings for the guide.</div>':''}
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Total debt</div><div class="kpi-value danger">₱${fmt(total)}</div></div>
+      <div class="kpi"><div class="kpi-label">Paid off</div><div class="kpi-value success">₱${fmt(paidAmt)}</div></div>
+      <div class="kpi"><div class="kpi-label">Active debts</div><div class="kpi-value">${debts.filter(d=>!paidIds[d.id]).length}</div></div>
+      <div class="kpi"><div class="kpi-label">Finishing soon</div><div class="kpi-value warn">${ready}</div></div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span class="pl">Payoff progress</span><span class="pr">${pct.toFixed(1)}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
+    </div>
+    <div class="banner banner-red">
+      <div class="banner-title">🔥 Urgent this month</div>
+      <div class="banner-item"><span class="tag tag-red">2 left</span> Salmon Loan (₱5,980) — due every 11th</div>
+      <div class="banner-item"><span class="tag tag-red">2 left</span> CashMart (₱18,414) — Jun 30 & Jul 14</div>
+      <div class="banner-item"><span class="tag tag-red">2 left</span> Atome Loan short (₱2,540) — every 3rd</div>
+      <div class="banner-item"><span class="tag tag-amber">Jul 7–13</span> JuanHand cluster — confirm minimums</div>
+    </div>
+    <div class="sec-hd"><div class="sec-title">Phase breakdown</div></div>
+    ${[1,2,3,4].map(p=>{
+      const pd=debts.filter(d=>d.phase===p);
+      const pt=pd.reduce((s,d)=>s+num(d.balance),0);
+      const pp=pd.filter(d=>paidIds[d.id]).reduce((s,d)=>s+num(d.balance),0);
+      const pph=pt>0?(pp/pt*100).toFixed(0):0;
+      const colors=['','var(--red)','var(--amber)','var(--blue)','var(--green)'];
+      const labels=['','Phase 1 — Finish fast (now→month 4)','Phase 2 — Free cash (month 4→10)','Phase 3 — Kill revolving debt','Phase 4 — Long-term installments'];
+      return `<div class="detail-box" style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${labels[p]}</div>
+          <div style="font-size:13px;font-weight:800;color:${colors[p]}">₱${fmt(pt)}</div>
+        </div>
+        <div class="bar-bg"><div style="height:100%;border-radius:99px;background:${colors[p]};width:${pph}%;transition:width .5s"></div></div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:5px">${pd.length} debts · ${pph}% cleared</div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+// ── DEBTS LIST ────────────────────────────────────────────────────
+async function renderDebts() {
+  const all = await getData();
+  const fmap = {all:'All',1:'🔴 Must keep',2:'🟠 Finish fast',3:'🔵 Revolving',4:'🟢 Long-term'};
+  let items = activeFilter==='all' ? all : all.filter(d=>d.tier==activeFilter);
+
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">All debts</div><span class="sec-count">${all.length} total</span></div>
+    <div class="filters">
+      ${Object.entries(fmap).map(([k,v])=>`<button class="fpill${activeFilter==k?' on':''}" onclick="setFilter('${k}')">${v}</button>`).join('')}
+    </div>
+    ${items.length===0?emptyHTML('📋','No debts here','Tap + to add one'):''}
+    ${items.map(d=>debtCard(d)).join('')}
+  `;
+}
+
+function debtCard(d) {
+  const tierCol = ['','t1-accent','t2-accent','t3-accent','t4-accent'][d.tier]||'t4-accent';
+  const done = paidIds[d.id];
+  const phase = ['','Phase 1','Phase 2','Phase 3','Phase 4'][d.phase]||'';
+  const tierLbl = ['','🔴 T1','🟠 T2','🔵 T3','🟢 T4'][d.tier]||'';
+  const tagC = d.monthsLeft<=2&&d.monthsLeft>0?'tag-red':d.monthsLeft<=5?'tag-amber':'tag-gray';
+  return `<div class="dcard${done?' paid':''}" onclick="viewDebt('${d.id}')">
+    <div class="dcard-accent ${tierCol}"></div>
+    <div class="dcard-inner">
+      <div class="dcard-top">
+        <div>
+          <div class="dcard-name">${d.name}</div>
+          <div class="dcard-meta">${d.due||'—'} ${d.monthsLeft?'· '+d.monthsLeft+'mo left':''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dcard-bal">₱${fmt(d.balance)}</div>
+          <button class="paid-toggle${done?' done':''}" onclick="togglePaid('${d.id}',event)" title="Mark paid">✓</button>
+        </div>
+      </div>
+      <div class="dcard-tags">
+        <span class="tag tag-gray">${tierLbl}</span>
+        ${d.monthsLeft?`<span class="tag ${tagC}">${d.monthsLeft}mo left</span>`:''}
+        ${d.monthlyPay?`<span class="tag tag-gray">₱${fmt(d.monthlyPay)}/mo</span>`:''}
+        <span class="tag tag-gray">${phase}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.setFilter = async (f) => {
+  activeFilter = f;
+  await renderDebts();
+};
+
+window.togglePaid = (id, e) => {
+  e.stopPropagation();
+  paidIds[id] = !paidIds[id];
+  renderDebts();
+};
+
+// ── DEBT DETAIL ───────────────────────────────────────────────────
+window.viewDebt = async (id) => {
+  const all = await getData();
+  const d = all.find(x=>x.id===id);
+  if (!d) return;
+  document.getElementById('fab').style.display = 'none';
+  const tierColors = {1:'linear-gradient(135deg,#C0392B,#E74C3C)',2:'linear-gradient(135deg,#D4870D,#F39C12)',3:'linear-gradient(135deg,#1565C0,#1E88E5)',4:'linear-gradient(135deg,#1E7E45,#27AE60)'};
+  const tierNames = {1:'Tier 1 — Must keep current',2:'Tier 2 — Finish fast',3:'Tier 3 — Revolving debt',4:'Tier 4 — Long-term'};
+  document.getElementById('main').innerHTML = `
+    <button class="back-btn" onclick="showView('debts')">← Back to debts</button>
+    <div class="detail-hero" style="background:${tierColors[d.tier]||tierColors[4]}">
+      <div class="detail-hero-emoji">💳</div>
+      <div class="detail-hero-name">${d.name}</div>
+      <div class="detail-hero-sub">${tierNames[d.tier]||''} · Phase ${d.phase||'—'}</div>
+    </div>
+    <div class="detail-box">
+      <div class="detail-row"><div class="detail-key">Balance</div><div class="detail-val big" style="color:var(--red)">₱${fmt(d.balance)}</div></div>
+      <div class="detail-row"><div class="detail-key">Monthly payment</div><div class="detail-val">${d.monthlyPay?'₱'+fmt(d.monthlyPay):' TBC'}</div></div>
+      <div class="detail-row"><div class="detail-key">Months left</div><div class="detail-val">${d.monthsLeft||'TBC'}</div></div>
+      <div class="detail-row"><div class="detail-key">Due date</div><div class="detail-val">${d.due||'—'}</div></div>
+      <div class="detail-row"><div class="detail-key">Interest / rate</div><div class="detail-val">${d.rate||'TBC'}</div></div>
+      <div class="detail-row"><div class="detail-key">Secured?</div><div class="detail-val">${d.secured?'Yes — asset-linked':'No'}</div></div>
+      <div class="detail-row"><div class="detail-key">Priority action</div><div class="detail-val" style="font-weight:700">${d.action||'—'}</div></div>
+      ${d.notes?`<div class="detail-row"><div class="detail-key">Notes</div><div class="detail-val">${d.notes}</div></div>`:''}
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1" onclick="openEdit('${d.id}')">✏️ Edit</button>
+      <button class="btn btn-danger-soft" style="flex:1" onclick="confirmDel('${d.id}','${d.name}')">🗑 Delete</button>
+    </div>
+  `;
+};
+
+// ── SNOWBALL ──────────────────────────────────────────────────────
+function renderSnowball() {
+  const steps = [
+    {name:'Atome Loan (short)',monthly:1270,months:2,freed:1270,roll:'→ CIMB Loan',payoff:'Aug 2026',done:true},
+    {name:'Salmon Loan',monthly:2990,months:2,freed:2990,roll:'→ CashMart',payoff:'Aug 2026',done:true},
+    {name:'CIMB Loan',monthly:990,months:4,freed:990,roll:'→ BillEase',payoff:'Oct 2026',done:false},
+    {name:'CashMart',monthly:9207,months:2,freed:9207,roll:'→ Colinas',payoff:'Aug 2026',done:false},
+    {name:'Colinas',monthly:12622,months:5,freed:12622,roll:'→ JuanHand cluster',payoff:'Nov 2026',done:false},
+    {name:'BillEase',monthly:1703,months:6,freed:1703,roll:'→ Atome Loan (long)',payoff:'Jan 2027',done:false},
+    {name:'Ggives',monthly:194,months:7,freed:194,roll:'→ Atome Loan (long)',payoff:'Jan 2027',done:false},
+    {name:'Atome Loan (long)',monthly:2047,months:5,freed:2047,roll:'→ JuanHand 1',payoff:'Jan 2027',done:false},
+    {name:'Gcredit',monthly:null,months:null,freed:null,roll:'→ JuanHand 1',payoff:'TBD',done:false},
+    {name:'JuanHand 1',monthly:null,months:null,freed:null,roll:'→ JuanHand 2',payoff:'TBD',done:false},
+    {name:'JuanHand 2',monthly:null,months:null,freed:null,roll:'→ JuanHand 3',payoff:'TBD',done:false},
+    {name:'JuanHand 3',monthly:null,months:null,freed:null,roll:'→ Maya CC',payoff:'TBD',done:false},
+    {name:'Maya Credit Card',monthly:null,months:null,freed:null,roll:'→ Atome Card',payoff:'TBD',done:false},
+    {name:'Atome Card',monthly:null,months:null,freed:null,roll:'→ CIMB Revi',payoff:'TBD',done:false},
+    {name:'CIMB Revi',monthly:null,months:12,freed:null,roll:'→ Salmon Credit',payoff:'TBD',done:false},
+    {name:'Salmon Credit',monthly:null,months:6,freed:null,roll:'→ Maya Loan',payoff:'TBD',done:false},
+    {name:'Maya Loan',monthly:null,months:null,freed:null,roll:'→ Xpander',payoff:'TBD',done:false},
+    {name:'Xpander',monthly:null,months:12,freed:null,roll:'→ Anchoridge',payoff:'TBD',done:false},
+    {name:'Wheeltek',monthly:722,months:9,freed:722,roll:'→ Anchoridge',payoff:'Mar 2027',done:false},
+    {name:'Anchoridge',monthly:1439,months:28,freed:1439,roll:'→ San Jose Koop',payoff:'Oct 2028',done:false},
+    {name:'San Jose Koop',monthly:844,months:32,freed:844,roll:'🎉 DEBT FREE!',payoff:'Feb 2029',done:false},
+  ];
+
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">Cash-flow snowball</div></div>
+    <div class="detail-box" style="margin-bottom:1rem">
+      <div style="font-size:13px;color:var(--text-mid);line-height:1.6">Each finished debt's monthly payment <strong>rolls into the next</strong>. Finishing short debts first frees up cash fastest.</div>
+    </div>
+    ${steps.map((s,i)=>`
+      <div class="sb-step">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="sb-dot${s.payoff!=='TBD'?' done':''}">${i+1}</div>
+          ${i<steps.length-1?'<div class="sb-line"></div>':''}
+        </div>
+        <div class="sb-body">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div class="sb-name">${s.name}</div>
+            <div style="font-size:11px;color:var(--text-light)">${s.payoff}</div>
+          </div>
+          <div class="sb-detail">${s.monthly?'₱'+fmt(s.monthly)+'/mo · ':''}${s.months?s.months+'mo':''}</div>
+          ${s.freed?`<div class="sb-freed">Frees ₱${fmt(s.freed)}/mo ${s.roll}</div>`:`<div style="font-size:12px;color:var(--text-light);margin-top:3px">${s.roll}</div>`}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+// ── BUDGET ────────────────────────────────────────────────────────
+function renderBudget() {
+  const income = [{l:'Primary salary',a:222000},{l:'Secondary income 1',a:70000},{l:'Secondary income 2',a:70000}];
+  const knownPay = [
+    {l:'Salmon Loan',a:2990},{l:'CashMart',a:9207},{l:'Atome Loan (short)',a:1270},
+    {l:'CIMB Loan',a:990},{l:'Colinas',a:12622},{l:'BillEase',a:1703},
+    {l:'Ggives',a:194},{l:'Atome Loan (long)',a:2047},{l:'Wheeltek',a:722},{l:'Anchoridge',a:1439},
+  ];
+  const totalInc = income.reduce((s,x)=>s+x.a,0);
+  const totalPay = knownPay.reduce((s,x)=>s+x.a,0);
+
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">Monthly budget</div></div>
+    <div class="detail-box" style="margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--text-mid);margin-bottom:4px">Monthly income</div>
+      ${income.map(x=>`<div class="budget-row"><span class="budget-label">${x.l}</span><span class="budget-amount" style="color:var(--green)">₱${fmt(x.a)}</span></div>`).join('')}
+      <div class="budget-total"><span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Total income</span><span style="font-size:18px;font-weight:800;color:var(--white)">₱${fmt(totalInc)}</span></div>
+    </div>
+    <div class="detail-box" style="margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--text-mid);margin-bottom:4px">Known minimum payments</div>
+      ${knownPay.map(x=>`<div class="budget-row"><span class="budget-label">${x.l}</span><span class="budget-amount" style="color:var(--red)">−₱${fmt(x.a)}</span></div>`).join('')}
+      <div class="budget-row" style="opacity:.5"><span class="budget-label" style="font-size:13px">JuanHand 1, 2, 3 (TBC)</span><span style="color:var(--text-light)">—</span></div>
+      <div class="budget-row" style="opacity:.5"><span class="budget-label" style="font-size:13px">Maya CC, Atome Card + others (TBC)</span><span style="color:var(--text-light)">—</span></div>
+      <div class="budget-total"><span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Known payments</span><span style="font-size:18px;font-weight:800;color:var(--white)">−₱${fmt(totalPay)}</span></div>
+    </div>
+    <div class="detail-box">
+      <div style="font-size:13px;font-weight:700;color:var(--text-mid);margin-bottom:4px">After known payments</div>
+      <div class="budget-row"><span class="budget-label">Total income</span><span class="budget-amount" style="color:var(--green)">₱${fmt(totalInc)}</span></div>
+      <div class="budget-row"><span class="budget-label">Known payments</span><span class="budget-amount" style="color:var(--red)">−₱${fmt(totalPay)}</span></div>
+      <div class="budget-row"><span class="budget-label" style="color:var(--text-light);font-size:13px">Living expenses (enter yours)</span><span style="color:var(--text-light)">—</span></div>
+      <div class="budget-total"><span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Remaining (before TBCs)</span><span style="font-size:18px;font-weight:800;color:var(--gold)">₱${fmt(totalInc-totalPay)}</span></div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:10px">⚠️ JuanHand minimums and revolving minimums not yet included.</div>
+    </div>
+  `;
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────
+function renderSettings() {
+  document.getElementById('fab').style.display = 'none';
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">Settings</div></div>
+    ${DEMO?`<div class="config-box">
+      <strong>🔥 Connect Firebase to save your data</strong><br><br>
+      1. Go to <strong>console.firebase.google.com</strong><br>
+      2. Create project → Add Web App<br>
+      3. Enable <strong>Authentication</strong> (Email/Password)<br>
+      4. Create <strong>Firestore Database</strong> (test mode)<br>
+      5. Replace the <code>firebaseConfig</code> object in this file<br>
+      6. Set Firestore rules:<br><br>
+      <code style="display:block;white-space:pre;font-size:11px;background:rgba(255,255,255,.6);padding:8px;border-radius:6px;margin-top:4px">rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /users/{uid}/{col=**} {
+      allow read, write:
+        if request.auth.uid == uid;
+    }
+  }
+}</code>
+    </div>`:`
+    <div class="detail-box">
+      <div class="detail-row"><div class="detail-key">Name</div><div class="detail-val">${userProfile?.name||'—'}</div></div>
+      <div class="detail-row"><div class="detail-key">Email</div><div class="detail-val">${user?.email||'—'}</div></div>
+      <div class="detail-row"><div class="detail-key">Database</div><div class="detail-val" style="color:var(--green)">🔥 Firebase connected</div></div>
+    </div>`}
+    <div class="detail-box">
+      <div class="detail-row"><div class="detail-key">App</div><div class="detail-val">Peso AI Debt Tracker</div></div>
+      <div class="detail-row"><div class="detail-key">Version</div><div class="detail-val">v1.0</div></div>
+      <div class="detail-row"><div class="detail-key">Built with</div><div class="detail-val">Firebase + Claude ❤️</div></div>
+    </div>
+    <button class="btn btn-outline" style="width:100%;margin-top:1rem" onclick="doLogout()">🚪 Sign out</button>
+  `;
+}
+
+// ── ADD / EDIT MODAL ──────────────────────────────────────────────
+window.openAdd = () => {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add debt';
+  document.getElementById('modal-body').innerHTML = debtForm(null);
+  document.getElementById('overlay').classList.add('open');
+};
+
+window.openEdit = async (id) => {
+  const all = await getData();
+  const d = all.find(x=>x.id===id);
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit debt';
+  document.getElementById('modal-body').innerHTML = debtForm(d);
+  document.getElementById('overlay').classList.add('open');
+};
+
+window.tryClose = e => {
+  if(e.target===document.getElementById('overlay')) closeModal();
+};
+window.closeModal = () => document.getElementById('overlay').classList.remove('open');
+
+function debtForm(d) {
+  const v = f => d?.[f]??'';
+  return `
+    <div class="fl"><label>Lender / Debt name *</label><input class="fi" id="f-name" value="${v('name')}" placeholder="e.g. Maya Credit Card"></div>
+    <div class="fl"><label>Balance (₱) *</label><input class="fi" id="f-balance" type="number" value="${v('balance')}" placeholder="0"></div>
+    <div class="fl"><label>Monthly payment (₱)</label><input class="fi" id="f-monthlyPay" type="number" value="${v('monthlyPay')}" placeholder="Leave blank if unknown"></div>
+    <div class="fl"><label>Months left</label><input class="fi" id="f-monthsLeft" type="number" value="${v('monthsLeft')}" placeholder="Leave blank if unknown"></div>
+    <div class="fl"><label>Due date</label><input class="fi" id="f-due" value="${v('due')}" placeholder="e.g. Every 1st, Jul 15"></div>
+    <div class="fl"><label>Interest / Rate</label><input class="fi" id="f-rate" value="${v('rate')}" placeholder="e.g. 3.5%, HIGH, TBD"></div>
+    <div class="fl"><label>Tier</label>
+      <select class="fi" id="f-tier">
+        <option value="1" ${v('tier')==1?'selected':''}>Tier 1 — Must keep current (secured)</option>
+        <option value="2" ${v('tier')==2||!v('tier')?'selected':''}>Tier 2 — Finish fast</option>
+        <option value="3" ${v('tier')==3?'selected':''}>Tier 3 — Revolving debt</option>
+        <option value="4" ${v('tier')==4?'selected':''}>Tier 4 — Long-term installment</option>
+      </select>
+    </div>
+    <div class="fl"><label>Phase</label>
+      <select class="fi" id="f-phase">
+        <option value="1" ${v('phase')==1||!v('phase')?'selected':''}>Phase 1 — Pay off now</option>
+        <option value="2" ${v('phase')==2?'selected':''}>Phase 2 — After Phase 1</option>
+        <option value="3" ${v('phase')==3?'selected':''}>Phase 3 — Revolving attack</option>
+        <option value="4" ${v('phase')==4?'selected':''}>Phase 4 — Long-term</option>
+      </select>
+    </div>
+    <div class="fl"><label>Priority action</label><input class="fi" id="f-action" value="${v('action')}" placeholder="e.g. PAY OFF NOW, Keep current"></div>
+    <div class="fl"><label>Notes</label><textarea class="fi" id="f-notes">${v('notes')}</textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-navy" style="flex:2" onclick="saveForm()">Save debt</button>
+    </div>
+  `;
+}
+
+window.saveForm = async () => {
+  const g = id => { const el=document.getElementById(id); return el?el.value.trim():''; };
+  const name=g('f-name'), balance=g('f-balance');
+  if(!name||!balance){ toast('⚠️ Name and balance are required'); return; }
+  const data = {
+    name, balance:parseFloat(balance)||0,
+    monthlyPay: g('f-monthlyPay')?parseFloat(g('f-monthlyPay')):null,
+    monthsLeft: g('f-monthsLeft')?parseInt(g('f-monthsLeft')):null,
+    due: g('f-due'), rate: g('f-rate'),
+    tier: parseInt(g('f-tier'))||2,
+    phase: parseInt(g('f-phase'))||1,
+    action: g('f-action'), notes: g('f-notes'),
+    secured: parseInt(g('f-tier'))===1,
+    status: 'current'
+  };
+  try {
+    if(editingId) { await editDebt(editingId, data); toast('✅ Updated!'); }
+    else { await saveDebt(data); toast('✅ Debt saved!'); }
+    closeModal();
+    showView('debts');
+  } catch(e) { toast('❌ Error saving. Try again.'); }
+};
+
+// ── DELETE ────────────────────────────────────────────────────────
+window.confirmDel = (id, name) => {
+  if(confirm(`Delete "${name}"? This cannot be undone.`)) doDelete(id);
+};
+async function doDelete(id) {
+  try { await removeDebt(id); toast('🗑 Deleted'); showView('debts'); }
+  catch{ toast('❌ Could not delete'); }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function fmt(n){ return (parseFloat(n)||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function num(n){ return parseFloat(n)||0; }
+function emptyHTML(icon,text,hint){ return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div><div class="empty-hint">${hint}</div></div>`; }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+
+document.getElementById('lp').addEventListener('keydown',e=>{ if(e.key==='Enter') window.doLogin(); });
+document.getElementById('rp').addEventListener('keydown',e=>{ if(e.key==='Enter') window.doRegister(); });
+</script>
+</body>
+</html>
