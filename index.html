@@ -5,117 +5,109 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Peso AI — Debt Tracker</title>
 <style>
-:root{--navy:#1A2744;--navy-mid:#243158;--gold:#C8873A;--red:#C0392B;--red-light:#FDECEA;--green:#1E7E45;--green-light:#D4EDDA;--amber:#D4870D;--amber-light:#FFF3CD;--blue:#1565C0;--blue-light:#E3F2FD;--cream:#F8F5F0;--parchment:#EEE8DC;--white:#FFFFFF;--text:#1A1A2E;--text-mid:#4A4A6A;--text-light:#8A8AAA;--border:rgba(26,39,68,0.12);--shadow:0 2px 12px rgba(26,39,68,0.10);--radius:16px;--rsm:10px}
+:root{--navy:#1A2744;--gold:#C8873A;--red:#C0392B;--red-light:#FDECEA;--green:#1E7E45;--green-light:#D4EDDA;--amber:#D4870D;--amber-light:#FFF3CD;--blue:#1565C0;--blue-light:#E3F2FD;--cream:#F8F5F0;--parchment:#EEE8DC;--white:#FFFFFF;--text:#1A1A2E;--text-mid:#4A4A6A;--text-light:#8A8AAA;--border:rgba(26,39,68,0.12);--shadow:0 2px 12px rgba(26,39,68,0.10);--radius:16px;--rsm:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto}
-#auth-screen{min-height:100vh;background:linear-gradient(160deg,var(--navy) 0%,var(--navy-mid) 60%,#2D4A8A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+/* AUTH */
+#auth-screen{min-height:100vh;background:linear-gradient(160deg,#1A2744 0%,#243158 60%,#2D4A8A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
 .auth-logo{font-size:64px;margin-bottom:.5rem;text-align:center}
-.auth-title{font-size:30px;font-weight:800;color:var(--white);letter-spacing:-.5px;text-align:center}
-.auth-tagline{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:2rem;text-align:center}
-.auth-card{background:var(--white);border-radius:24px;padding:1.75rem;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.25)}
+.auth-title{font-size:30px;font-weight:800;color:#fff;letter-spacing:-.5px;text-align:center}
+.auth-tag{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:2rem;text-align:center}
+.auth-card{background:#fff;border-radius:24px;padding:1.75rem;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.25)}
 .auth-tabs{display:flex;background:var(--parchment);border-radius:var(--rsm);padding:4px;margin-bottom:1.5rem}
-.auth-tab{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-size:14px;font-weight:600;color:var(--text-light);cursor:pointer;transition:all .2s;font-family:inherit}
-.auth-tab.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.auth-tab{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-size:14px;font-weight:600;color:var(--text-light);cursor:pointer;font-family:inherit}
+.auth-tab.active{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .fl{margin-bottom:.875rem}
 .fl label{font-size:11px;font-weight:700;color:var(--text-mid);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.05em}
-.fi{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:14px;background:var(--cream);color:var(--text);outline:none;transition:border-color .2s;font-family:inherit}
-.fi:focus{border-color:var(--navy);background:var(--white)}
+.fi{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:14px;background:var(--cream);color:var(--text);outline:none;font-family:inherit}
+.fi:focus{border-color:var(--navy);background:#fff}
 select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%234A4A6A' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 textarea.fi{resize:vertical;min-height:65px}
 .fi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{width:100%;padding:13px;border:none;border-radius:var(--rsm);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
-.btn-navy{background:var(--navy);color:var(--white)}.btn-navy:hover{background:var(--navy-mid)}
-.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text-mid)}.btn-outline:hover{border-color:var(--navy);color:var(--navy)}
-.btn-danger-soft{background:var(--red-light);color:var(--red);border:none}.btn-danger-soft:hover{background:#F5C6C2}
-.btn-gold{background:var(--gold);color:var(--white);border:none}.btn-gold:hover{background:#B8762A}
+.btn{width:100%;padding:13px;border:none;border-radius:var(--rsm);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-navy{background:var(--navy);color:#fff}.btn-navy:hover{opacity:.9}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text-mid)}.btn-outline:hover{border-color:var(--navy)}
+.btn-danger{background:var(--red-light);color:var(--red);border:none}
 .auth-err{font-size:13px;color:var(--red);text-align:center;margin-top:10px;min-height:18px}
+/* APP */
 #app{display:none;flex-direction:column;min-height:100vh}
 .hdr{background:var(--navy);padding:1rem 1.25rem .75rem;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.18)}
 .hdr-row{display:flex;align-items:center;justify-content:space-between}
 .hdr-brand{display:flex;align-items:center;gap:8px}
-.hdr-logo{font-size:24px}
-.hdr-name{font-size:18px;font-weight:800;color:var(--white);letter-spacing:-.3px}
+.hdr-name{font-size:18px;font-weight:800;color:#fff}
 .hdr-sub{font-size:11px;color:rgba(255,255,255,.55)}
-.hdr-actions{display:flex;gap:6px}
-.icn-btn{width:34px;height:34px;border:1.5px solid rgba(255,255,255,.2);border-radius:50%;background:transparent;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:background .2s}
+.hdr-acts{display:flex;gap:6px}
+.icn-btn{width:34px;height:34px;border:1.5px solid rgba(255,255,255,.2);border-radius:50%;background:transparent;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px}
 .icn-btn:hover{background:rgba(255,255,255,.12)}
 .nav{display:flex;background:var(--navy);padding:0 .5rem;border-top:1px solid rgba(255,255,255,.08);margin-top:8px}
-.ntab{flex:1;padding:9px 2px 7px;border:none;background:transparent;color:rgba(255,255,255,.45);font-size:9px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;text-align:center;font-family:inherit;letter-spacing:.03em;text-transform:uppercase}
+.ntab{flex:1;padding:9px 2px 7px;border:none;background:transparent;color:rgba(255,255,255,.45);font-size:9px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;text-align:center;font-family:inherit;text-transform:uppercase;letter-spacing:.03em}
 .ntab .ti{font-size:17px;display:block;margin-bottom:2px}
-.ntab.active{color:var(--white);border-bottom-color:var(--gold)}
+.ntab.active{color:#fff;border-bottom-color:var(--gold)}
 .content{flex:1;padding:1.25rem;padding-bottom:5rem}
-.fab{position:fixed;bottom:1.5rem;right:1.5rem;width:54px;height:54px;background:var(--gold);border:none;border-radius:50%;color:var(--white);font-size:26px;cursor:pointer;box-shadow:0 4px 18px rgba(200,135,58,.5);display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:200}
-.fab:hover{transform:scale(1.08) translateY(-2px)}
+/* FAB */
+.fab{position:fixed;bottom:1.5rem;right:1.5rem;width:54px;height:54px;background:var(--gold);border:none;border-radius:50%;color:#fff;font-size:26px;cursor:pointer;box-shadow:0 4px 18px rgba(200,135,58,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+.fab:hover{transform:scale(1.08)}
+/* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .overlay.open{opacity:1;pointer-events:all}
-.sheet{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:1.5rem;max-height:92vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:1.5rem;max-height:92vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .overlay.open .sheet{transform:translateY(0)}
 .pill{width:40px;height:4px;background:var(--border);border-radius:99px;margin:0 auto 1.25rem}
-.modal-title{font-size:19px;font-weight:800;color:var(--text);margin-bottom:1rem}
+.modal-title{font-size:19px;font-weight:800;margin-bottom:1rem}
 .modal-actions{display:flex;gap:10px;margin-top:1rem}.modal-actions .btn{flex:1}
 /* CARDS */
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem}
-.kpi{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border)}
+.kpi{background:#fff;border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border)}
 .kpi-label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-.kpi-value{font-size:20px;font-weight:800;color:var(--text)}
-.kpi-value.danger{color:var(--red)}.kpi-value.success{color:var(--green)}.kpi-value.warn{color:var(--amber)}.kpi-value.blue{color:var(--blue)}
-.progress-wrap{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:1.25rem}
-.progress-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}
-.pl{font-weight:700;color:var(--text-mid)}.pr{color:var(--text-light)}
+.kpi-value{font-size:20px;font-weight:800}
+.kpi-value.red{color:var(--red)}.kpi-value.green{color:var(--green)}.kpi-value.amber{color:var(--amber)}
 .bar-bg{background:var(--parchment);border-radius:99px;height:10px;overflow:hidden}
 .bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),#2ECC71);transition:width .5s}
 .sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
 .sec-title{font-size:14px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.04em}
 .sec-count{font-size:12px;color:var(--text-light);background:var(--parchment);padding:3px 10px;border-radius:99px;font-weight:600}
-/* DEBT CARDS */
-.dcard{background:var(--white);border-radius:var(--radius);padding:.875rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
-.dcard:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,39,68,.13)}
+/* DEBT CARD */
+.dcard{background:#fff;border-radius:var(--radius);padding:.875rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px;cursor:pointer;position:relative;overflow:hidden;transition:transform .15s}
+.dcard:hover{transform:translateY(-2px)}
 .dcard.paid{opacity:.38}
-.dcard-accent{position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:var(--radius) 0 0 var(--radius)}
-.dcard-inner{padding-left:10px}
-.dcard-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.dcard-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
-.dcard-bal{font-size:14px;font-weight:800;color:var(--text);white-space:nowrap}
-.dcard-meta{font-size:11px;color:var(--text-light);margin-top:3px}
-.dcard-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;align-items:center}
+.da{position:absolute;left:0;top:0;bottom:0;width:5px}
+.di{padding-left:10px}
+.dt{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.dn{font-size:14px;font-weight:700}
+.db{font-size:14px;font-weight:800;white-space:nowrap}
+.dm{font-size:11px;color:var(--text-light);margin-top:3px}
+.dtags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
 .tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
 .tag-red{background:var(--red-light);color:var(--red)}.tag-amber{background:var(--amber-light);color:var(--amber)}
 .tag-blue{background:var(--blue-light);color:var(--blue)}.tag-green{background:var(--green-light);color:var(--green)}
 .tag-gray{background:var(--parchment);color:var(--text-mid)}.tag-navy{background:rgba(26,39,68,.12);color:var(--navy)}
-.t1{background:var(--red)}.t2{background:var(--amber)}.t3{background:var(--blue)}.t4{background:var(--green)}.t5{background:#7B3FA0}
-.paid-toggle{width:26px;height:26px;border:1.5px solid var(--border);border-radius:50%;background:var(--cream);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
-.paid-toggle.done{background:var(--green-light);border-color:var(--green);color:var(--green)}
+.c1{background:var(--green)}.c2{background:var(--blue)}.c3{background:var(--amber)}.c4{background:var(--red)}.c5{background:#7B3FA0}
+.ptoggle{width:26px;height:26px;border:1.5px solid var(--border);border-radius:50%;background:var(--cream);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ptoggle.done{background:var(--green-light);border-color:var(--green);color:var(--green)}
 /* DETAIL */
 .back-btn{display:flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--navy);font-size:14px;font-weight:700;cursor:pointer;padding:0;margin-bottom:1rem;font-family:inherit}
-.detail-hero{border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;color:var(--white)}
-.detail-box{background:var(--white);border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px}
-.detail-row{display:flex;align-items:flex-start;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:12px}
-.detail-row:last-child{border-bottom:none;padding-bottom:0}
-.detail-key{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0;padding-top:1px}
-.detail-val{font-size:14px;color:var(--text);text-align:right;word-break:break-word}
-.detail-val.big{font-size:20px;font-weight:800}
+.dbox{background:#fff;border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:10px}
+.drow{display:flex;align-items:flex-start;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);gap:12px}
+.drow:last-child{border-bottom:none;padding-bottom:0}
+.dk{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.dv{font-size:14px;color:var(--text);text-align:right;word-break:break-word}
 /* SNOWBALL */
-.sb-step{display:flex;gap:12px;margin-bottom:4px}
+.sb{display:flex;gap:12px;margin-bottom:4px}
 .sb-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;background:var(--parchment);color:var(--text-mid);border:2px solid var(--border)}
 .sb-dot.done{background:var(--green-light);color:var(--green);border-color:var(--green)}
 .sb-line{width:2px;height:16px;background:var(--border);margin-left:12px}
 .sb-body{flex:1;padding-bottom:8px}
-.sb-name{font-size:13px;font-weight:700;color:var(--text)}
-.sb-detail{font-size:11px;color:var(--text-light);margin-top:2px}
-.sb-freed{font-size:11px;color:var(--green);font-weight:700;margin-top:3px}
-/* BUDGET */
-.budget-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
-.budget-row:last-child{border-bottom:none}
-.budget-label{font-size:13px;color:var(--text)}
-.budget-amount{font-size:13px;font-weight:800}
-.budget-total{background:var(--navy);border-radius:var(--rsm);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 /* FILTERS */
 .filters{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
-.fpill{padding:5px 12px;border:1.5px solid var(--border);background:var(--white);border-radius:99px;font-size:11px;font-weight:700;color:var(--text-light);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
-.fpill.on{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.fpill{padding:5px 12px;border:1.5px solid var(--border);background:#fff;border-radius:99px;font-size:11px;font-weight:700;color:var(--text-light);cursor:pointer;font-family:inherit;white-space:nowrap}
+.fpill.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 .sort-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
 .sort-row label{font-size:11px;font-weight:700;color:var(--text-mid);white-space:nowrap}
-.sort-row select{flex:1;padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:11px;font-family:inherit;background:var(--white);color:var(--text);outline:none}
+.sort-row select{flex:1;padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--rsm);font-size:11px;font-family:inherit;background:#fff}
+/* BUDGET */
+.brow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.brow:last-child{border-bottom:none}
+.btotal{background:var(--navy);border-radius:var(--rsm);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 /* MISC */
 .empty{text-align:center;padding:3rem 1rem;color:var(--text-light)}
 .empty-icon{font-size:48px;margin-bottom:.5rem}
@@ -123,20 +115,16 @@ textarea.fi{resize:vertical;min-height:65px}
 .empty-hint{font-size:13px;margin-top:4px}
 .spinner{width:32px;height:32px;border:3px solid var(--parchment);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;margin:3rem auto}
 @keyframes spin{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:var(--white);padding:10px 20px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast{position:fixed;bottom:5.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 20px;border-radius:99px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.alert-box{border-radius:var(--radius);padding:1rem 1.125rem;margin-bottom:1rem}
-.alert-red{background:var(--red-light);border:1px solid rgba(192,57,43,.2)}
-.alert-amber{background:var(--amber-light);border:1px solid rgba(212,135,13,.2)}
-.alert-green{background:var(--green-light);border:1px solid rgba(30,126,69,.2)}
-.alert-title{font-size:13px;font-weight:800;margin-bottom:8px}
-.alert-item{font-size:12px;display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;line-height:1.4;color:var(--text)}
-.alert-item:last-child{margin-bottom:0}
-.greeting{font-size:20px;font-weight:800;color:var(--text);margin-bottom:2px}
-.sub-date{font-size:13px;color:var(--text-light);margin-bottom:1.25rem}
-.config-box{background:var(--amber-light);border:1px solid rgba(212,135,13,.3);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;font-size:13px;color:var(--text);line-height:1.6}
-.config-box code{font-size:11px;background:rgba(255,255,255,.7);padding:2px 6px;border-radius:4px;font-family:monospace;display:block;margin-top:8px;white-space:pre;line-height:1.8}
-.income-source-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin-bottom:.5rem}
+.pbar{background:#fff;border-radius:var(--radius);padding:1rem 1.125rem;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:1.25rem}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem}
+.cat-card{background:#fff;border-radius:12px;padding:.875rem;box-shadow:var(--shadow);border:1px solid var(--border)}
+.rec-card{border-radius:12px;padding:.875rem 1rem;margin-bottom:8px}
+.month-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.month-box{text-align:center;padding:8px 4px;border-radius:8px}
+.month-label{font-size:10px;font-weight:700;margin-bottom:2px}
+.month-val{font-size:13px;font-weight:800}
 </style>
 </head>
 <body>
@@ -144,7 +132,7 @@ textarea.fi{resize:vertical;min-height:65px}
 <div id="auth-screen">
   <div class="auth-logo">💸</div>
   <div class="auth-title">Peso AI</div>
-  <div class="auth-tagline">Your personal debt freedom tracker</div>
+  <div class="auth-tag">Your personal debt freedom tracker</div>
   <div class="auth-card">
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
@@ -169,10 +157,12 @@ textarea.fi{resize:vertical;min-height:65px}
   <div class="hdr">
     <div class="hdr-row">
       <div class="hdr-brand">
-        <span class="hdr-logo">💸</span>
-        <div><div class="hdr-name">Peso AI</div><div class="hdr-sub" id="hdr-sub">Debt Tracker</div></div>
+        <div>
+          <div class="hdr-name">💸 Peso AI</div>
+          <div class="hdr-sub" id="hdr-sub">Debt Tracker</div>
+        </div>
       </div>
-      <div class="hdr-actions">
+      <div class="hdr-acts">
         <button class="icn-btn" onclick="showView('settings')">⚙️</button>
         <button class="icn-btn" onclick="doLogout()">🚪</button>
       </div>
@@ -180,7 +170,7 @@ textarea.fi{resize:vertical;min-height:65px}
     <div class="nav">
       <button class="ntab active" id="nav-dashboard" onclick="showView('dashboard')"><span class="ti">🏠</span>Home</button>
       <button class="ntab" id="nav-debts" onclick="showView('debts')"><span class="ti">📋</span>Debts</button>
-      <button class="ntab" id="nav-expenses" onclick="showView('expenses')"><span class="ti">🏠</span>Living</button>
+      <button class="ntab" id="nav-expenses" onclick="showView('expenses')"><span class="ti">🏡</span>Living</button>
       <button class="ntab" id="nav-snowball" onclick="showView('snowball')"><span class="ti">⛄</span>Snowball</button>
       <button class="ntab" id="nav-budget" onclick="showView('budget')"><span class="ti">💰</span>Budget</button>
     </div>
@@ -190,17 +180,21 @@ textarea.fi{resize:vertical;min-height:65px}
 </div>
 
 <div class="overlay" id="overlay" onclick="tryClose(event)">
-  <div class="sheet"><div class="pill"></div><div class="modal-title" id="modal-title"></div><div id="modal-body"></div></div>
+  <div class="sheet">
+    <div class="pill"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div id="modal-body"></div>
+  </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast-el"></div>
 
-<script type="module">
-import { initializeApp }    from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+<!-- Firebase loaded as regular scripts — NO module scope issues -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+<script>
+// ══ FIREBASE CONFIG ═══════════════════════════════════════════════
 const firebaseConfig = {
   apiKey:            "AIzaSyAvYvcQzh5TFTpbrwUWgOQsVXbtgSrf-YQ",
   authDomain:        "pesoai-debt-tracker.firebaseapp.com",
@@ -209,498 +203,357 @@ const firebaseConfig = {
   messagingSenderId: "162401672311",
   appId:             "1:162401672311:web:172a77ddbe64f7cfdc3a72"
 };
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
 
-// ── UPDATED SEED DEBTS (from 2024-Budget-updated-1.xlsx) ──────
-// Categories: 1=Real estate, 2=Vehicle, 3=Digital/Cash loans, 4=Revolving credit, 5=BNPL
+// ══ SEED DATA ═════════════════════════════════════════════════════
 const SEED_DEBTS = [
-  // REAL ESTATE
-  {cat:1,tier:1,name:"Anchoridge Farm Lot",balance:40277.78,monthlyPay:40277.78,monthsLeft:28,dueDay:"6th of month",nextDue:"2026-08-06",rate:"TBD",secured:true,phase:4,action:"Keep current — asset",notes:"Block 1 Lots 1-4. Total contract ₱362,500. Paid Jan–Mar 2026.",paid:false},
-  {cat:1,tier:1,name:"Colinas Verdes",balance:63111.11,monthlyPay:63111.11,monthsLeft:5,dueDay:"7th of month",nextDue:"2026-08-07",rate:"TBD",secured:true,phase:1,action:"CRITICAL — highest monthly hit",notes:"₱63,111/mo in 2026, rises to ₱73,500 in 2027-2028.",paid:false},
-  {cat:1,tier:1,name:"San Jose Koop House Loan",balance:26953,monthlyPay:27000,monthsLeft:2,dueDay:"24th of month",nextDue:"2026-08-24",rate:"TBD",secured:true,phase:1,action:"PAY OFF — 2 months left!",notes:"30-month loan started Dec 2023. Ends ~Aug 2026. ₱27,000/mo.",paid:false},
-  // VEHICLE
-  {cat:2,tier:1,name:"Mitsubishi Xpander Auto Loan",balance:36749,monthlyPay:36749,monthsLeft:6,dueDay:"25th of month",nextDue:"2026-08-25",rate:"TBD",secured:true,phase:2,action:"Keep current — car asset",notes:"₱36,749/mo. Tracked through end of 2026.",paid:false},
-  {cat:2,tier:1,name:"Wheeltek Motorcycle Loan",balance:6500,monthlyPay:722,monthsLeft:9,dueDay:"18th of month",nextDue:"2026-08-18",rate:"TBD",secured:true,phase:2,action:"Keep current — asset",notes:"Small monthly ₱722. 9 months left.",paid:false},
-  // DIGITAL / CASH LOANS
-  {cat:3,tier:2,name:"JuanHand Cash Loan",balance:23574,monthlyPay:23574,monthsLeft:1,dueDay:"25th of month",nextDue:"2026-08-25",rate:"HIGH",secured:false,phase:1,action:"PAY OFF — 1 month left!",notes:"Was 3 separate loans. Now ₱23,574. Confirm with lender if fully settled.",paid:false},
-  {cat:3,tier:2,name:"CashMart",balance:16740,monthlyPay:16740,monthsLeft:1,dueDay:"11th & 25th",nextDue:"2026-08-11",rate:"HIGH",secured:false,phase:1,action:"PAY OFF — final payment",notes:"₱16,740 split over 2 due dates. Near end — confirm settlement.",paid:false},
-  {cat:3,tier:2,name:"Salmon Cash Loan",balance:5980,monthlyPay:5980,monthsLeft:1,dueDay:"10th of month",nextDue:"2026-08-10",rate:"HIGH",secured:false,phase:1,action:"PAY OFF — 1 payment left",notes:"₱5,980. Last installment. Finish this month.",paid:false},
-  {cat:3,tier:2,name:"CIMB Installment Loan",balance:3958.75,monthlyPay:3958.75,monthsLeft:1,dueDay:"1st of month",nextDue:"2026-08-01",rate:"TBD",secured:false,phase:1,action:"PAY OFF — last payment",notes:"₱3,958.75. Final payment Aug 1. Done after this.",paid:false},
-  {cat:3,tier:2,name:"Cebuana Interest Payments",balance:8603.48,monthlyPay:8603.48,monthsLeft:null,dueDay:"1st/5th/6th",nextDue:"2026-08-01",rate:"HIGH",secured:false,phase:2,action:"Pay interest — principal TBC",notes:"Monthly interest on Cebuana loans. ₱8,603.48/mo. Reduce principal to stop interest.",paid:false},
-  // REVOLVING CREDIT
-  {cat:4,tier:3,name:"Maya Credit Card (Black)",balance:30000,monthlyPay:30000,monthsLeft:null,dueDay:"6th of month",nextDue:"2026-08-06",rate:"HIGH",secured:false,phase:3,action:"STOP USING — pay above minimum",notes:"Balance fluctuates ₱12K–₱43K. Pay above minimum every month. Freeze.",paid:false},
-  {cat:4,tier:3,name:"Salmon Credit (Revolving)",balance:15334.82,monthlyPay:15334.82,monthsLeft:null,dueDay:"4th of month",nextDue:"2026-08-04",rate:"HIGH",secured:false,phase:3,action:"Attack in Phase 3 — high interest",notes:"₱15,334.82. Revolving — do not roll over.",paid:false},
-  {cat:4,tier:3,name:"CIMB Revi (Revolving)",balance:10000,monthlyPay:10000,monthsLeft:null,dueDay:"22nd of month",nextDue:"2026-08-22",rate:"HIGH",secured:false,phase:3,action:"Pay min; attack Phase 3",notes:"₱10,000 revolving. Due 22nd.",paid:false},
-  // BNPL
-  {cat:5,tier:2,name:"BillEase",balance:10236,monthlyPay:10867.99,monthsLeft:1,dueDay:"10th & 18th",nextDue:"2026-08-10",rate:"TBD",secured:false,phase:1,action:"PAY OFF — near end",notes:"₱10,867 split over 2 dates. Confirm remaining balance.",paid:false},
-  {cat:5,tier:2,name:"Atome Card (Revolving)",balance:8220.08,monthlyPay:8220.08,monthsLeft:null,dueDay:"4th of month",nextDue:"2026-08-04",rate:"HIGH",secured:false,phase:3,action:"Freeze card — pay full each month",notes:"BNPL revolving. ₱8,220 due Aug 4. Stop new purchases.",paid:false},
-  {cat:5,tier:2,name:"Atome Cash Loan",balance:10236.11,monthlyPay:10236.11,monthsLeft:1,dueDay:"24th of month",nextDue:"2026-08-24",rate:"TBD",secured:false,phase:1,action:"PAY OFF — 1 payment left",notes:"₱10,236.11 due Aug 24. Last payment.",paid:false},
-  {cat:5,tier:2,name:"Maya Cash Loan",balance:20000,monthlyPay:20000,monthsLeft:null,dueDay:"22nd of month",nextDue:"2026-08-22",rate:"TBD",secured:false,phase:2,action:"Keep current — pay monthly",notes:"₱20,000/mo due 22nd.",paid:false},
-  // SMALL REVOLVING
-  {cat:4,tier:3,name:"Ggives",balance:1360.69,monthlyPay:1360.69,monthsLeft:null,dueDay:"30th of month",nextDue:"2026-08-30",rate:"HIGH",secured:false,phase:2,action:"Clear ASAP — small balance",notes:"₱1,360.69. Small — eliminate quickly.",paid:false},
-  {cat:4,tier:3,name:"Gcredit",balance:1360.69,monthlyPay:1360.69,monthsLeft:null,dueDay:"1st of month",nextDue:"2026-08-01",rate:"HIGH",secured:false,phase:2,action:"Clear ASAP — small balance",notes:"₱1,360.69. Small — eliminate quickly.",paid:false},
+  {cat:1,name:"Anchoridge Farm Lot",balance:40277.78,monthlyPay:40277.78,monthsLeft:28,dueDay:"6th of month",nextDue:"2026-08-06",rate:"TBD",phase:4,action:"Keep current — asset",notes:"Block 1 Lots 1-4. Total ₱362,500.",paid:false},
+  {cat:1,name:"Colinas Verdes",balance:63111.11,monthlyPay:63111.11,monthsLeft:5,dueDay:"7th of month",nextDue:"2026-08-07",rate:"TBD",phase:1,action:"CRITICAL — highest monthly hit",notes:"₱63,111/mo 2026, rises to ₱73,500 in 2027-2028.",paid:false},
+  {cat:1,name:"San Jose Koop House Loan",balance:26953,monthlyPay:27000,monthsLeft:2,dueDay:"24th of month",nextDue:"2026-08-24",rate:"TBD",phase:1,action:"PAY OFF — 2 months left!",notes:"Ends ~Aug 2026.",paid:false},
+  {cat:2,name:"Mitsubishi Xpander Auto Loan",balance:36749,monthlyPay:36749,monthsLeft:6,dueDay:"25th of month",nextDue:"2026-08-25",rate:"TBD",phase:2,action:"Keep current — car",notes:"₱36,749/mo through end 2026.",paid:false},
+  {cat:2,name:"Wheeltek Motorcycle Loan",balance:6500,monthlyPay:722,monthsLeft:9,dueDay:"18th of month",nextDue:"2026-08-18",rate:"TBD",phase:2,action:"Keep current — asset",notes:"₱722/mo. 9 months left.",paid:false},
+  {cat:3,name:"JuanHand Cash Loan",balance:23574,monthlyPay:23574,monthsLeft:1,dueDay:"25th of month",nextDue:"2026-08-25",rate:"HIGH",phase:1,action:"PAY OFF — 1 month left!",notes:"Confirm settlement with lender.",paid:false},
+  {cat:3,name:"CashMart",balance:16740,monthlyPay:16740,monthsLeft:1,dueDay:"11th & 25th",nextDue:"2026-08-11",rate:"HIGH",phase:1,action:"PAY OFF — final payment",notes:"Split over 2 due dates.",paid:false},
+  {cat:3,name:"Salmon Cash Loan",balance:5980,monthlyPay:5980,monthsLeft:1,dueDay:"10th of month",nextDue:"2026-08-10",rate:"HIGH",phase:1,action:"PAY OFF — 1 payment left",notes:"Last installment.",paid:false},
+  {cat:3,name:"CIMB Installment Loan",balance:3958.75,monthlyPay:3958.75,monthsLeft:1,dueDay:"1st of month",nextDue:"2026-08-01",rate:"TBD",phase:1,action:"PAY OFF — last payment",notes:"Final payment Aug 1.",paid:false},
+  {cat:3,name:"Cebuana Interest Payments",balance:8603.48,monthlyPay:8603.48,monthsLeft:null,dueDay:"1st/5th/6th",nextDue:"2026-08-01",rate:"HIGH",phase:2,action:"Pay interest — reduce principal",notes:"Monthly interest ₱8,603.48.",paid:false},
+  {cat:4,name:"Maya Credit Card (Black)",balance:30000,monthlyPay:30000,monthsLeft:null,dueDay:"6th of month",nextDue:"2026-08-06",rate:"HIGH",phase:3,action:"STOP USING — pay above min",notes:"Balance ₱12K–₱43K. Freeze card.",paid:false},
+  {cat:4,name:"Salmon Credit (Revolving)",balance:15334.82,monthlyPay:15334.82,monthsLeft:null,dueDay:"4th of month",nextDue:"2026-08-04",rate:"HIGH",phase:3,action:"Attack in Phase 3",notes:"Revolving — do not roll over.",paid:false},
+  {cat:4,name:"CIMB Revi (Revolving)",balance:10000,monthlyPay:10000,monthsLeft:null,dueDay:"22nd of month",nextDue:"2026-08-22",rate:"HIGH",phase:3,action:"Pay min; attack Phase 3",notes:"₱10,000 revolving.",paid:false},
+  {cat:5,name:"BillEase",balance:10236,monthlyPay:10867.99,monthsLeft:1,dueDay:"10th & 18th",nextDue:"2026-08-10",rate:"TBD",phase:1,action:"PAY OFF — near end",notes:"Confirm remaining balance.",paid:false},
+  {cat:5,name:"Atome Card (Revolving)",balance:8220.08,monthlyPay:8220.08,monthsLeft:null,dueDay:"4th of month",nextDue:"2026-08-04",rate:"HIGH",phase:3,action:"Freeze — pay full each month",notes:"BNPL revolving.",paid:false},
+  {cat:5,name:"Atome Cash Loan",balance:10236.11,monthlyPay:10236.11,monthsLeft:1,dueDay:"24th of month",nextDue:"2026-08-24",rate:"TBD",phase:1,action:"PAY OFF — 1 payment left",notes:"Last payment.",paid:false},
+  {cat:5,name:"Maya Cash Loan",balance:20000,monthlyPay:20000,monthsLeft:null,dueDay:"22nd of month",nextDue:"2026-08-22",rate:"TBD",phase:2,action:"Keep current",notes:"₱20,000/mo due 22nd.",paid:false},
+  {cat:4,name:"Ggives",balance:1360.69,monthlyPay:1360.69,monthsLeft:null,dueDay:"30th of month",nextDue:"2026-08-30",rate:"HIGH",phase:2,action:"Clear ASAP",notes:"Small — eliminate quickly.",paid:false},
+  {cat:4,name:"Gcredit",balance:1360.69,monthlyPay:1360.69,monthsLeft:null,dueDay:"1st of month",nextDue:"2026-08-01",rate:"HIGH",phase:2,action:"Clear ASAP",notes:"Small — eliminate quickly.",paid:false},
 ];
 
-// ── SEED LIVING EXPENSES ────────────────────────────────────────
 const SEED_EXPENSES = [
-  {name:"Camella Cielo Rent",amount:18000,dueDay:"16th of month",category:"Housing",notes:"Monthly rent. Non-negotiable.",recurring:true},
-  {name:"Meralco — Camella Cielo",amount:10000,dueDay:"Variable",category:"Utilities",notes:"Electric bill Camella Cielo.",recurring:true},
-  {name:"Meralco — Farm Angat",amount:8000,dueDay:"Variable",category:"Utilities",notes:"Electric bill Farm Angat.",recurring:true},
-  {name:"Smart (Phone/Data)",amount:5200,dueDay:"17th of month",category:"Utilities",notes:"Phone plan.",recurring:true},
-  {name:"PrimeWater",amount:1500,dueDay:"Variable",category:"Utilities",notes:"Water bill Camella Cielo.",recurring:true},
-  {name:"Food Budget",amount:20000,dueDay:"Monthly",category:"Food",notes:"Household food budget.",recurring:true},
-  {name:"Farm Salaries (Sam+Ram+Tam)",amount:25400,dueDay:"Monthly",category:"Farm",notes:"Sam ₱12,800 + Ram ₱9,600 + Tam ₱3,000.",recurring:true},
-  {name:"Kasambahay (AteGing)",amount:8000,dueDay:"Monthly",category:"Household",notes:"Household helper salary.",recurring:true},
-  {name:"Fuel",amount:10000,dueDay:"Monthly",category:"Transport",notes:"Fuel for vehicle.",recurring:true},
-  {name:"SSS Deduction",amount:1845.80,dueDay:"30th",category:"Government",notes:"SSS monthly deduction.",recurring:true},
-  {name:"PhilHealth/Pag-IBIG",amount:4624.15,dueDay:"15th",category:"Government",notes:"Government deductions.",recurring:true},
+  {name:"Camella Cielo Rent",amount:18000,dueDay:"16th",category:"Housing",notes:"Monthly rent",recurring:true},
+  {name:"Meralco — Camella Cielo",amount:10000,dueDay:"Variable",category:"Utilities",notes:"Electric bill",recurring:true},
+  {name:"Meralco — Farm Angat",amount:8000,dueDay:"Variable",category:"Utilities",notes:"Electric bill farm",recurring:true},
+  {name:"Smart (Phone/Data)",amount:5200,dueDay:"17th",category:"Utilities",notes:"Phone plan",recurring:true},
+  {name:"PrimeWater",amount:1500,dueDay:"Variable",category:"Utilities",notes:"Water bill",recurring:true},
+  {name:"Food Budget",amount:20000,dueDay:"Monthly",category:"Food",notes:"Household food",recurring:true},
+  {name:"Farm Salaries (Sam+Ram+Tam)",amount:25400,dueDay:"Monthly",category:"Farm",notes:"Sam ₱12,800 + Ram ₱9,600 + Tam ₱3,000",recurring:true},
+  {name:"Kasambahay (AteGing)",amount:8000,dueDay:"Monthly",category:"Household",notes:"Helper salary",recurring:true},
+  {name:"Fuel",amount:10000,dueDay:"Monthly",category:"Transport",notes:"Vehicle fuel",recurring:true},
+  {name:"SSS Deduction",amount:1845.80,dueDay:"30th",category:"Government",notes:"SSS monthly",recurring:true},
+  {name:"PhilHealth/Pag-IBIG",amount:4624.15,dueDay:"15th",category:"Government",notes:"Government deductions",recurring:true},
 ];
 
-const SNOWBALL_ORDER = [
-  {name:"CIMB Installment Loan",monthly:3958.75,months:1,freed:3958.75,roll:"→ BillEase",payoff:"Aug 2026"},
-  {name:"Salmon Cash Loan",monthly:5980,months:1,freed:5980,roll:"→ CashMart",payoff:"Aug 2026"},
-  {name:"San Jose Koop House Loan",monthly:27000,months:2,freed:27000,roll:"→ JuanHand",payoff:"Sep 2026"},
-  {name:"JuanHand Cash Loan",monthly:23574,months:1,freed:23574,roll:"→ Atome Cash Loan",payoff:"Aug 2026"},
-  {name:"BillEase",monthly:10867.99,months:1,freed:10867.99,roll:"→ CashMart",payoff:"Aug 2026"},
-  {name:"CashMart",monthly:16740,months:1,freed:16740,roll:"→ Atome Cash Loan",payoff:"Aug 2026"},
-  {name:"Atome Cash Loan",monthly:10236.11,months:1,freed:10236.11,roll:"→ Colinas",payoff:"Aug 2026"},
-  {name:"Colinas Verdes",monthly:63111.11,months:5,freed:63111.11,roll:"→ Xpander",payoff:"Dec 2026"},
-  {name:"Wheeltek Motorcycle",monthly:722,months:9,freed:722,roll:"→ Xpander",payoff:"Apr 2027"},
-  {name:"Ggives",monthly:1360.69,months:null,freed:1360.69,roll:"→ Gcredit",payoff:"TBD"},
-  {name:"Gcredit",monthly:1360.69,months:null,freed:1360.69,roll:"→ Cebuana",payoff:"TBD"},
-  {name:"Cebuana Interest",monthly:8603.48,months:null,freed:8603.48,roll:"→ Atome Card",payoff:"TBD"},
-  {name:"Maya Cash Loan",monthly:20000,months:null,freed:20000,roll:"→ Atome Card",payoff:"TBD"},
-  {name:"Atome Card",monthly:8220.08,months:null,freed:8220.08,roll:"→ Salmon Credit",payoff:"TBD"},
-  {name:"Mitsubishi Xpander",monthly:36749,months:6,freed:36749,roll:"→ CIMB Revi",payoff:"Jan 2027"},
-  {name:"CIMB Revi",monthly:10000,months:null,freed:10000,roll:"→ Salmon Credit",payoff:"TBD"},
-  {name:"Salmon Credit",monthly:15334.82,months:null,freed:15334.82,roll:"→ Maya CC",payoff:"TBD"},
-  {name:"Maya Credit Card",monthly:30000,months:null,freed:30000,roll:"→ Anchoridge",payoff:"TBD"},
-  {name:"Anchoridge Farm Lot",monthly:40277.78,months:28,freed:40277.78,roll:"🎉 DEBT FREE!",payoff:"Nov 2028"},
-];
+// ══ STATE ══════════════════════════════════════════════════════════
+let currentUser = null, profile = null;
+let activeView = 'dashboard', activeFilter = 'all', activeSort = 'phase', editingId = null, editingType = null;
 
-// ── STATE ────────────────────────────────────────────────────────
-let auth, db, user, profile;
-let activeView='dashboard', activeFilter='all', activeSort='phase', editingId=null, editingType=null;
+// ══ HELPERS ════════════════════════════════════════════════════════
+function f(n){ return (parseFloat(n)||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function n(v){ return parseFloat(v)||0; }
+function lsKey(name){ return 'pesoai_' + currentUser.uid + '_' + name; }
+function lsGet(name){ try{ const d=localStorage.getItem(lsKey(name)); return d?JSON.parse(d):[]; } catch{ return []; } }
+function lsSet(name,data){ try{ localStorage.setItem(lsKey(name),JSON.stringify(data)); } catch(e){} }
+function toast(msg){ const t=document.getElementById('toast-el'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
+function showSpinner(){ document.getElementById('main').innerHTML='<div class="spinner"></div>'; }
+function emptyHTML(icon,text,hint){ return `<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div><div class="empty-hint">${hint}</div></div>`; }
+function monthKey(offset){ const d=new Date(); d.setMonth(d.getMonth()+(offset||0)); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function mkLabel(k){ const[y,m]=k.split('-'); return new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'long',year:'numeric'}); }
 
-const fbApp = initializeApp(firebaseConfig);
-auth = getAuth(fbApp);
-db   = getFirestore(fbApp);
-
-onAuthStateChanged(auth, async u => {
-  if (u) { user=u; await loadProfile(); showApp(); }
-  else   { showAuth(); }
-});
-
-function showAuth() { document.getElementById('auth-screen').style.display='flex'; document.getElementById('app').style.display='none'; }
-async function showApp() {
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-  document.getElementById('hdr-sub').textContent = (profile?.name||'User')+"'s finances";
-  await showView('dashboard');
-}
-
-// ── AUTH ─────────────────────────────────────────────────────────
-window.switchAuthTab = t => {
-  document.getElementById('lf').style.display=t==='login'?'':'none';
-  document.getElementById('rf').style.display=t==='register'?'':'none';
-  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
-  document.getElementById('auth-err').textContent='';
-};
-window.doLogin = async () => {
-  const e=document.getElementById('le').value.trim(), p=document.getElementById('lp').value, err=document.getElementById('auth-err');
-  try { err.textContent='Signing in…'; await signInWithEmailAndPassword(auth,e,p); }
-  catch(ex){ err.textContent=authMsg(ex.code); }
-};
-window.doRegister = async () => {
-  const n=document.getElementById('rn').value.trim(), e=document.getElementById('re').value.trim(), p=document.getElementById('rp').value, err=document.getElementById('auth-err');
-  if(!n){err.textContent='Please enter your name.';return;}
-  try {
-    err.textContent='Creating account…';
-    const c=await createUserWithEmailAndPassword(auth,e,p);
-    await setDoc(doc(db,'users',c.user.uid),{name:n,email:e,createdAt:serverTimestamp(),seeded:false});
-  } catch(ex){ err.textContent=authMsg(ex.code); }
-};
-window.doLogout = async () => { await signOut(auth); };
-function authMsg(c){return({'auth/user-not-found':'No account with that email.','auth/wrong-password':'Wrong password.','auth/email-already-in-use':'Email already registered.','auth/weak-password':'Password needs 6+ characters.','auth/invalid-email':'Invalid email.','auth/invalid-credential':'Wrong email or password.'}[c])||'Something went wrong.';}
-
-// ── PROFILE & SEED ────────────────────────────────────────────────
-async function loadProfile() {
-  const snap=await getDoc(doc(db,'users',user.uid));
-  if(!snap.exists()){
-    profile={name:user.email.split('@')[0],seededDebts:false,seededExpenses:false};
-    await setDoc(doc(db,'users',user.uid),{...profile,email:user.email,createdAt:serverTimestamp()});
-  } else {
-    profile=snap.data();
-  }
-  // Always seed localStorage if empty (works offline/without Firestore rules)
-  if(lsGet('debts').length===0){
-    const localDebts=SEED_DEBTS.map((d,i)=>({...d,id:'seed_d_'+i,createdAt:{seconds:Math.floor(Date.now()/1000)+i}}));
-    lsSet('debts',localDebts);
-    console.log('Seeded',localDebts.length,'debts to localStorage');
-  }
-  if(lsGet('expenses').length===0){
-    const localExp=SEED_EXPENSES.map((e,i)=>({...e,id:'seed_e_'+i,createdAt:{seconds:Math.floor(Date.now()/1000)+i}}));
-    lsSet('expenses',localExp);
-    console.log('Seeded',localExp.length,'expenses to localStorage');
-  }
-
-  // Also try Firestore in background
-  if(!profile.seededDebts){
-    try{
-      const dSnap=await getDocs(collection(db,'users',user.uid,'debts'));
-      if(dSnap.empty){
-        const b=writeBatch(db);
-        SEED_DEBTS.forEach(d=>{const r=doc(collection(db,'users',user.uid,'debts'));b.set(r,{...d,createdAt:serverTimestamp()});});
-        await b.commit();
+// ══ DATA — localStorage first, Firestore background sync ══════════
+function getData(name){
+  return new Promise(async resolve => {
+    // Always return localStorage immediately
+    const local = lsGet(name);
+    // Try Firestore sync in background
+    try {
+      const snap = await db.collection('users').doc(currentUser.uid).collection(name).get();
+      if (!snap.empty) {
+        const fresh = snap.docs.map(d=>({id:d.id,...d.data()}));
+        lsSet(name, fresh);
+        resolve(fresh);
+        return;
+      } else if (local.length > 0) {
+        // Push local to Firestore
+        syncToFirestore(name, local);
       }
-      await updateDoc(doc(db,'users',user.uid),{seededDebts:true});
-      profile.seededDebts=true;
-    }catch(e){ console.warn('Firestore debt seed failed:',e.message); }
-  }
-  try{
-    const eSnap=await getDocs(collection(db,'users',user.uid,'expenses'));
-    if(eSnap.empty){
-      const b=writeBatch(db);
-      SEED_EXPENSES.forEach(e=>{const r=doc(collection(db,'users',user.uid,'expenses'));b.set(r,{...e,createdAt:serverTimestamp()});});
-      await b.commit();
-      profile.seededExpenses=true;
-    }
-  }catch(e){ console.warn('Firestore expense seed failed:',e.message); }
+    } catch(e) { /* rules not set or offline — use localStorage */ }
+    resolve(local);
+  });
 }
 
-// ── STORAGE: localStorage + Firestore hybrid ──────────────────────
-// Data always saves to localStorage immediately (instant load).
-// Firestore sync happens in background — works even if rules aren't set yet.
-let useFirestore = true; // set false if all Firestore ops fail
+async function syncToFirestore(name, items) {
+  try {
+    const batch = db.batch();
+    items.forEach(item => {
+      const {id,...data} = item;
+      const ref = db.collection('users').doc(currentUser.uid).collection(name).doc();
+      batch.set(ref, {...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    });
+    await batch.commit();
+  } catch(e) {}
+}
 
-function lsKey(name){ return `pesoai_${user.uid}_${name}`; }
-
-function lsGet(name){
-  try{ const d=localStorage.getItem(lsKey(name)); return d?JSON.parse(d):[]; }
-  catch{ return []; }
-}
-function lsSet(name,data){
-  try{ localStorage.setItem(lsKey(name), JSON.stringify(data)); }
-  catch(e){ console.warn('localStorage full',e); }
-}
-function lsDel(name,id){
-  const items=lsGet(name).filter(x=>x.id!==id);
-  lsSet(name,items);
-}
-function lsUpd(name,id,data){
-  const items=lsGet(name).map(x=>x.id===id?{...x,...data}:x);
-  lsSet(name,items);
-}
-function lsAdd(name,data){
-  const id='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  const item={...data,id,createdAt:{seconds:Math.floor(Date.now()/1000)}};
-  lsSet(name,[...lsGet(name),item]);
+async function saveItem(name, data) {
+  const id = 'local_' + Date.now();
+  const item = {...data, id, createdAt: new Date()};
+  const list = lsGet(name);
+  list.push(item);
+  lsSet(name, list);
+  try {
+    const ref = await db.collection('users').doc(currentUser.uid).collection(name).add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    // Update localStorage with real id
+    const updated = lsGet(name).map(x => x.id===id ? {...x, id:ref.id} : x);
+    lsSet(name, updated);
+  } catch(e) {}
   return id;
 }
 
-function col(name){return collection(db,'users',user.uid,name);}
+async function updateItem(name, id, data) {
+  const list = lsGet(name).map(x => x.id===id ? {...x,...data} : x);
+  lsSet(name, list);
+  try { await db.collection('users').doc(currentUser.uid).collection(name).doc(id).update(data); } catch(e) {}
+}
 
-async function getAll(name){
-  // 1. Always return localStorage immediately (fast)
-  const local = lsGet(name);
+async function deleteItem(name, id) {
+  lsSet(name, lsGet(name).filter(x=>x.id!==id));
+  try { await db.collection('users').doc(currentUser.uid).collection(name).doc(id).delete(); } catch(e) {}
+}
 
-  // 2. Try Firestore in background to sync
-  if(useFirestore){
-    try{
-      const s=await getDocs(col(name));
-      if(s.size>0){
-        const fresh=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
-          const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;
-          return ta-tb;
-        });
-        lsSet(name,fresh); // update localStorage with Firestore data
-        return fresh;
-      } else if(local.length>0){
-        // Firestore empty but we have local data — push to Firestore
-        syncLocalToFirestore(name,local);
-        return local;
-      }
-    } catch(e){
-      console.warn('Firestore read failed for',name,e.code||e.message);
-      if(e.code==='permission-denied') useFirestore=false;
-    }
+async function getIncomeList() {
+  return lsGet('income').sort((a,b)=>(b.ts||0)-(a.ts||0));
+}
+
+// ══ AUTH ══════════════════════════════════════════════════════════
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    currentUser = user;
+    await loadProfile();
+    showApp();
+  } else {
+    showAuth();
   }
-  return local;
+});
+
+function showAuth() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
 }
 
-async function syncLocalToFirestore(name,items){
-  try{
-    const b=writeBatch(db);
-    items.forEach(item=>{
-      const {id,...data}=item;
-      const r=doc(collection(db,'users',user.uid,name));
-      b.set(r,{...data,createdAt:serverTimestamp()});
-    });
-    await b.commit();
-    console.log('Synced',items.length,'items to Firestore:',name);
-  }catch(e){ console.warn('Sync to Firestore failed:',e.message); }
-}
-
-async function add(name,data){
-  // Save to localStorage first
-  const id=lsAdd(name,data);
-  // Try Firestore
-  if(useFirestore){
-    try{
-      const ref=await addDoc(col(name),{...data,createdAt:serverTimestamp()});
-      // Update localStorage with real Firestore ID
-      lsUpd(name,id,{id:ref.id});
-      return ref;
-    }catch(e){ console.warn('Firestore add failed:',e.message); }
+async function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('hdr-sub').textContent = (profile?.name||'User') + "'s finances";
+  // Seed localStorage if empty
+  if (lsGet('debts').length === 0) {
+    const seeded = SEED_DEBTS.map((d,i)=>({...d, id:'sd'+i, createdAt:new Date()}));
+    lsSet('debts', seeded);
   }
-  return {id};
+  if (lsGet('expenses').length === 0) {
+    const seeded = SEED_EXPENSES.map((e,i)=>({...e, id:'se'+i, createdAt:new Date()}));
+    lsSet('expenses', seeded);
+  }
+  await showView('dashboard');
 }
 
-async function upd(name,id,data){
-  lsUpd(name,id,data);
-  if(useFirestore){
-    try{ await updateDoc(doc(db,'users',user.uid,name,id),data); }
-    catch(e){ console.warn('Firestore update failed:',e.message); }
+function switchAuthTab(t) {
+  document.getElementById('lf').style.display = t==='login'?'':'none';
+  document.getElementById('rf').style.display = t==='register'?'':'none';
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('auth-err').textContent='';
+}
+
+async function doLogin() {
+  const e=document.getElementById('le').value.trim(), p=document.getElementById('lp').value;
+  const err=document.getElementById('auth-err');
+  try { err.textContent='Signing in…'; await auth.signInWithEmailAndPassword(e,p); }
+  catch(ex) { err.textContent=authMsg(ex.code); }
+}
+
+async function doRegister() {
+  const nm=document.getElementById('rn').value.trim(), e=document.getElementById('re').value.trim(), p=document.getElementById('rp').value;
+  const err=document.getElementById('auth-err');
+  if(!nm){err.textContent='Please enter your name.';return;}
+  try {
+    err.textContent='Creating account…';
+    const c = await auth.createUserWithEmailAndPassword(e,p);
+    await db.collection('users').doc(c.user.uid).set({name:nm,email:e,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  } catch(ex) { err.textContent=authMsg(ex.code); }
+}
+
+async function doLogout() { await auth.signOut(); }
+
+function authMsg(code) {
+  const m = {'auth/user-not-found':'No account with that email.','auth/wrong-password':'Wrong password.','auth/email-already-in-use':'Email already registered.','auth/weak-password':'Password needs 6+ characters.','auth/invalid-email':'Invalid email.','auth/invalid-credential':'Wrong email or password.'};
+  return m[code]||'Something went wrong.';
+}
+
+async function loadProfile() {
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).get();
+    profile = snap.exists ? snap.data() : {name: currentUser.email.split('@')[0]};
+  } catch(e) {
+    profile = {name: currentUser.email.split('@')[0]};
   }
 }
 
-async function del(name,id){
-  lsDel(name,id);
-  if(useFirestore){
-    try{ await deleteDoc(doc(db,'users',user.uid,name,id)); }
-    catch(e){ console.warn('Firestore delete failed:',e.message); }
-  }
-}
-
-async function getAllIncome(){
-  const local=lsGet('income');
-  if(useFirestore){
-    try{
-      const s=await getDocs(col('income'));
-      if(s.size>0){
-        const fresh=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
-          const tb=b.createdAt?.seconds||0,ta=a.createdAt?.seconds||0;
-          return tb-ta;
-        });
-        lsSet('income',fresh);
-        return fresh;
-      }
-    }catch(e){ console.warn('Firestore income read failed:',e.message); }
-  }
-  return local.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-}
-// getAllIncome defined in hybrid storage section above
-function monthKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
-function mkLabel(k){const[y,m]=k.split('-');return new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'long',year:'numeric'});}
-
-// ── VIEWS ─────────────────────────────────────────────────────────
-window.showView = async v => {
-  activeView=v;
+// ══ VIEWS ═════════════════════════════════════════════════════════
+async function showView(v) {
+  activeView = v;
   document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
-  const nb=document.getElementById('nav-'+v);if(nb)nb.classList.add('active');
-  document.getElementById('fab').style.display=(v==='debts'||v==='expenses')?'flex':'none';
-  document.getElementById('main').innerHTML='<div class="spinner"></div>';
-  if(v==='dashboard')await renderDash();
-  else if(v==='debts')await renderDebts();
-  else if(v==='expenses')await renderExpenses();
-  else if(v==='snowball')renderSnowball();
-  else if(v==='budget')await renderBudget();
-  else if(v==='settings')renderSettings();
-};
+  const nb = document.getElementById('nav-'+v); if(nb) nb.classList.add('active');
+  document.getElementById('fab').style.display = (v==='debts'||v==='expenses') ? 'flex' : 'none';
+  showSpinner();
+  if      (v==='dashboard') await renderDash();
+  else if (v==='debts')     await renderDebts();
+  else if (v==='expenses')  await renderExpenses();
+  else if (v==='snowball')  renderSnowball();
+  else if (v==='budget')    await renderBudget();
+  else if (v==='settings')  renderSettings();
+}
 
-// ── DASHBOARD ─────────────────────────────────────────────────────
-window.renderDash = async function(){
-  const [debts,incomeList,expenses]=await Promise.all([getAll('debts'),getAllIncome(),getAll('expenses')]);
-  const now=new Date(),hr=now.getHours();
-  const today=new Date();today.setHours(0,0,0,0);
-  const uname=(profile?.name||'').split(' ')[0]||'ka-utang';
+// ══ DASHBOARD ═════════════════════════════════════════════════════
+async function renderDash() {
+  const debts = await getData('debts');
+  const expenses = await getData('expenses');
+  const incomeList = await getIncomeList();
+  const now = new Date(), hr = now.getHours();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const uname = (profile?.name||'').split(' ')[0]||'ka-utang';
 
-  // month helpers
-  function monthData(offset){
-    const d=new Date(now.getFullYear(),now.getMonth()+offset,1);
-    const ms=new Date(d.getFullYear(),d.getMonth(),1);
-    const me=new Date(d.getFullYear(),d.getMonth()+1,0);
-    const mk=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const label=d.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
-    const mnInc=incomeList.find(i=>i.monthKey===mk);
-    const income=mnInc?n(mnInc.total):(n(profile?.totalIncome)||362000);
-    const dueList=debts.filter(d=>{
-      if(!d.nextDue)return false;
-      const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
-      return dd>=ms&&dd<=me;
-    }).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
-    const totalDue=dueList.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-    const paidList=dueList.filter(d=>d.paid);
-    const paidAmt=paidList.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-    const unpaid=totalDue-paidAmt;
-    const cashLeft=income-totalDue;
-    return{ms,me,mk,label,income,dueList,totalDue,paidList,paidAmt,unpaid,cashLeft};
+  function getMonthData(offset) {
+    const d = new Date(now.getFullYear(), now.getMonth()+offset, 1);
+    const ms = new Date(d.getFullYear(), d.getMonth(), 1);
+    const me = new Date(d.getFullYear(), d.getMonth()+1, 0);
+    const mk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label = d.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+    const mnInc = incomeList.find(i=>i.monthKey===mk);
+    const income = mnInc ? n(mnInc.total) : (n(profile?.totalIncome)||362000);
+    const due = debts.filter(d=>{ if(!d.nextDue)return false; const dd=new Date(d.nextDue); dd.setHours(0,0,0,0); return dd>=ms&&dd<=me; }).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
+    const totalDue = due.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+    const paid = due.filter(d=>d.paid);
+    const paidAmt = paid.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+    const cashLeft = income - totalDue;
+    return {ms,me,mk,label,income,due,totalDue,paid,paidAmt,unpaid:totalDue-paidAmt,cashLeft};
   }
 
-  const cm=monthData(0), nm=monthData(1);
+  const cm = getMonthData(0), nm = getMonthData(1);
+  const total = debts.reduce((s,d)=>s+n(d.balance),0);
+  const paidAmt = debts.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
+  const pct = total>0?(paidAmt/total*100):0;
 
-  // overall
-  const total=debts.reduce((s,d)=>s+n(d.balance),0);
-  const paidDebtAmt=debts.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
-  const pct=total>0?(paidDebtAmt/total*100):0;
-
-  // 5 category breakdown
-  const catDef=[
+  // 5-category cards
+  const cats = [
     {id:1,icon:'🏠',label:'Real Estate',color:'#1E7E45'},
     {id:2,icon:'🚗',label:'Vehicle',color:'#1565C0'},
     {id:3,icon:'💵',label:'Cash Loans',color:'#D4870D'},
     {id:4,icon:'💳',label:'Revolving',color:'#C0392B'},
     {id:5,icon:'📦',label:'BNPL',color:'#7B3FA0'},
   ];
-  const catCards=catDef.map(c=>{
-    const cd=debts.filter(d=>d.cat===c.id&&!d.paid);
-    const ct=cd.reduce((s,d)=>s+n(d.balance),0);
-    const cm2=cd.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-    if(ct===0&&cd.length===0)return'';
-    return `<div style="background:var(--white);border-radius:12px;padding:.875rem;box-shadow:var(--shadow);border:1px solid var(--border);border-left:4px solid ${c.color}">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-        <span style="font-size:18px">${c.icon}</span>
-        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.label}</div>
-      </div>
+  const catHTML = cats.map(c=>{
+    const cd = debts.filter(d=>d.cat===c.id&&!d.paid);
+    const ct = cd.reduce((s,d)=>s+n(d.balance),0);
+    const cm2 = cd.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+    if(ct===0&&cd.length===0) return '';
+    return `<div class="cat-card" style="border-left:4px solid ${c.color}">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:18px">${c.icon}</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.label}</div></div>
       <div style="font-size:16px;font-weight:800;color:${c.color}">₱${f(ct)}</div>
       <div style="font-size:10px;color:var(--text-light);margin-top:2px">${cd.length} active · ₱${f(cm2)}/mo</div>
     </div>`;
   }).join('');
 
-  // month dues list
-  function dueListHTML(m,isCurrentMonth){
-    if(m.dueList.length===0)return`<div style="font-size:12px;color:var(--text-light);padding:10px 0;text-align:center">No due dates set. Edit debts to add due dates.</div>`;
-    return m.dueList.map(d=>{
+  // Recommendations
+  const finishing = debts.filter(d=>!d.paid&&n(d.monthsLeft)>0&&n(d.monthsLeft)<=2);
+  const overdue = cm.due.filter(d=>{ if(d.paid||!d.nextDue)return false; const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd<today; });
+  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+  let recs = [];
+  if(overdue.length>0) recs.push({color:var_red_light,border:var_red,title:'🔴 Overdue payments!',body:`${overdue.map(d=>d.name).join(', ')} past due. Pay immediately to avoid penalties.`});
+  if(finishing.length>0) recs.push({color:'#FFF3CD',border:'#D4870D',title:'🏁 '+finishing.length+' debt'+(finishing.length>1?'s':'')+' finishing soon',body:finishing.map(d=>d.name+' ('+d.monthsLeft+'mo)').join(', ')+'. Finish these — freed cash rolls into the next debt.'});
+  if(cm.cashLeft<0) recs.push({color:var_red_light,border:var_red,title:'⚠️ Payments exceed income this month',body:`₱${f(Math.abs(cm.cashLeft))} short. Contact lenders to restructure before missing payments.`});
+  else if(cm.cashLeft<50000) recs.push({color:'#FFF3CD',border:'#D4870D',title:'⚡ Tight cash flow this month',body:`Only ₱${f(cm.cashLeft)} left after debt payments. No new purchases.`});
+  recs.push({color:'#D4EDDA',border:'#1E7E45',title:'🎯 Snowball focus: pay one debt at a time',body:'Pay minimums on all, then concentrate extra cash on the debt with fewest months left. When done, roll that payment into the next one.'});
+
+  function dueListHTML(m, showStatus) {
+    if(m.due.length===0) return `<div style="font-size:12px;color:var(--text-light);padding:10px 0;text-align:center">No due dates set. Edit debts to add due dates.</div>`;
+    return m.due.map(d=>{
       const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
       const dl=Math.ceil((dd-today)/(1000*60*60*24));
       const past=dl<0;
-      const lbl=d.paid?'✓ Paid':past?`${Math.abs(dl)}d overdue`:dl===0?'Today':`${dl}d`;
+      const lbl=d.paid?'✓ Paid':past?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d';
       const tc=d.paid?'tag-green':past?'tag-red':dl<=3?'tag-amber':'tag-blue';
       return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px">
         <div style="display:flex;align-items:center;gap:6px;min-width:0">
-          ${isCurrentMonth?`<span class="tag ${tc}" style="flex-shrink:0;font-size:10px">${lbl}</span>`:''}
-          <div style="min-width:0">
-            <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
-            <div style="font-size:10px;color:var(--text-light)">${d.nextDue} · ${d.dueDay||''}</div>
-          </div>
+          ${showStatus?`<span class="tag ${tc}" style="flex-shrink:0">${lbl}</span>`:''}
+          <div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
+          <div style="font-size:10px;color:var(--text-light)">${d.nextDue}</div></div>
         </div>
         <div style="font-size:13px;font-weight:800;color:${d.paid?'var(--green)':past?'var(--red)':'var(--text)'}">₱${f(d.monthlyPay||0)}</div>
       </div>`;
-    }).join('')+`<div style="display:flex;justify-content:space-between;padding:8px 0">
-      <span style="font-size:12px;font-weight:700">Total due</span>
-      <span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span>
-    </div>`;
+    }).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;font-weight:700">Total due</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span></div>`;
   }
 
-  // recommendations engine
-  const finishing=debts.filter(d=>!d.paid&&n(d.monthsLeft)>0&&n(d.monthsLeft)<=2);
-  const highInterest=debts.filter(d=>!d.paid&&d.rate==='HIGH').sort((a,b)=>n(b.balance)-n(a.balance));
-  const overdue=cm.dueList.filter(d=>{if(d.paid||!d.nextDue)return false;const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd<today;});
-  const totalExp=expenses.reduce((s,e)=>s+n(e.amount),0);
+  document.getElementById('main').innerHTML = `
+    <div class="greeting" style="font-size:20px;font-weight:800;margin-bottom:2px">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:1.25rem">${now.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
 
-  let recs=[];
-  if(overdue.length>0) recs.push({icon:'🔴',type:'danger',title:'Overdue payments!',body:`${overdue.map(d=>d.name).join(', ')} ${overdue.length===1?'is':'are'} past due. Pay immediately to avoid penalties and credit damage.`});
-  if(finishing.length>0) recs.push({icon:'🏁',type:'amber',title:`${finishing.length} debt${finishing.length>1?'s':''} finishing this month`,body:`${finishing.map(d=>d.name+'('+d.monthsLeft+'mo)').join(', ')}. Pay these off — every peso freed rolls into the next debt.`});
-  if(cm.cashLeft<0) recs.push({icon:'⚠️',type:'danger',title:'Payments exceed income this month',body:`You are ₱${f(Math.abs(cm.cashLeft))} short. Call lenders now to request restructuring or due date alignment before missing payments.`});
-  else if(cm.cashLeft<50000) recs.push({icon:'⚡',type:'amber',title:'Tight cash flow this month',body:`Only ₱${f(cm.cashLeft)} left after debt payments. Avoid new purchases. Put any extra into the nearest-ending debt.`});
-  if(highInterest.length>0&&finishing.length===0) recs.push({icon:'💡',type:'blue',title:'Attack high-interest debts next',body:`${highInterest[0].name} (₱${f(highInterest[0].balance)}) is your most expensive revolving debt. Pay above minimum to reduce interest drain.`});
-  const revolving=debts.filter(d=>!d.paid&&d.cat===4);
-  if(revolving.length>0) recs.push({icon:'🧊',type:'blue',title:'Freeze all revolving cards',body:`You have ${revolving.length} active revolving accounts. Stop all new purchases on Maya CC, Salmon Credit, CIMB Revi, and Atome Card. Pay minimum + extra only.`});
-  if(totalExp>100000) recs.push({icon:'✂️',type:'amber',title:'Living expenses are high (₱'+f(totalExp)+'/mo)',body:'Review farm salaries, utilities, and household costs. Even reducing by ₱10,000/mo frees ₱120,000/year for debt payoff.'});
-  recs.push({icon:'🎯',type:'green',title:'Snowball strategy: focus on one debt at a time',body:'Pay minimums on everything, then put all extra cash on the debt with the fewest months left. When it\'s done, roll that payment into the next one.'});
-
-  const recColors={danger:'var(--red-light)',amber:'var(--amber-light)',blue:'var(--blue-light)',green:'var(--green-light)'};
-  const recTextColors={danger:'var(--red)',amber:'var(--amber)',blue:'var(--blue)',green:'var(--green)'};
-
-  document.getElementById('main').innerHTML=`
-    <div class="greeting">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
-    <div class="sub-date">${now.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
-
-    <!-- OVERALL -->
     <div class="sec-hd"><div class="sec-title">📊 Overall debt</div><span class="sec-count">₱${f(total)} remaining</span></div>
-    <div class="progress-wrap" style="margin-bottom:1rem">
-      <div class="progress-label"><span class="pl">Payoff progress</span><span class="pr">${pct.toFixed(1)}% cleared</span></div>
+    <div class="pbar">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px"><span style="font-weight:700;color:var(--text-mid)">Payoff progress</span><span style="color:var(--text-light)">${pct.toFixed(1)}% cleared</span></div>
       <div class="bar-bg"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
     </div>
 
-    <!-- 5 CATEGORY BREAKDOWN -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem">${catCards}</div>
+    <div class="cat-grid">${catHTML}</div>
 
-    <!-- RECOMMENDATIONS -->
     <div class="sec-hd"><div class="sec-title">💡 Recommendations</div></div>
-    ${recs.map(r=>`<div style="background:${recColors[r.type]};border-radius:12px;padding:.875rem 1rem;margin-bottom:8px;border-left:4px solid ${recTextColors[r.type]}">
-      <div style="font-size:13px;font-weight:800;color:${recTextColors[r.type]};margin-bottom:4px">${r.icon} ${r.title}</div>
-      <div style="font-size:12px;color:var(--text);line-height:1.5">${r.body}</div>
-    </div>`).join('')}
+    ${recs.map(r=>`<div class="rec-card" style="background:${r.color};border-left:4px solid ${r.border}"><div style="font-size:13px;font-weight:800;color:${r.border};margin-bottom:4px">${r.title}</div><div style="font-size:12px;color:var(--text);line-height:1.5">${r.body}</div></div>`).join('')}
 
-    <!-- CURRENT MONTH -->
     <div class="sec-hd" style="margin-top:.5rem">
       <div class="sec-title">📅 ${cm.label}</div>
       <button class="fpill on" style="font-size:10px" onclick="openIncomeModal()">+ Income</button>
     </div>
-    <div class="detail-box" style="margin-bottom:10px">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="text-align:center;padding:8px 4px;background:var(--green-light);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--green)">INCOME</div>
-          <div style="font-size:13px;font-weight:800;color:var(--green)">₱${f(cm.income)}</div>
-        </div>
-        <div style="text-align:center;padding:8px 4px;background:var(--red-light);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--red)">DUE</div>
-          <div style="font-size:13px;font-weight:800;color:var(--red)">₱${f(cm.totalDue)}</div>
-        </div>
-        <div style="text-align:center;padding:8px 4px;background:var(--green-light);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--green)">PAID ✓</div>
-          <div style="font-size:13px;font-weight:800;color:var(--green)">₱${f(cm.paidAmt)}</div>
-        </div>
-        <div style="text-align:center;padding:8px 4px;background:${cm.cashLeft>=0?'var(--green-light)':'var(--red-light)'};border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">LEFT</div>
-          <div style="font-size:13px;font-weight:800;color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">${cm.cashLeft<0?'−':''}₱${f(Math.abs(cm.cashLeft))}</div>
-        </div>
+    <div class="dbox" style="margin-bottom:10px">
+      <div class="month-grid">
+        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">INCOME</div><div class="month-val" style="color:var(--green)">₱${f(cm.income)}</div></div>
+        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DUE</div><div class="month-val" style="color:var(--red)">₱${f(cm.totalDue)}</div></div>
+        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">PAID ✓</div><div class="month-val" style="color:var(--green)">₱${f(cm.paidAmt)}</div></div>
+        <div class="month-box" style="background:${cm.cashLeft>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">LEFT</div><div class="month-val" style="color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">${cm.cashLeft<0?'−':''}₱${f(Math.abs(cm.cashLeft))}</div></div>
       </div>
-      ${dueListHTML(cm,true)}
+      ${dueListHTML(cm, true)}
     </div>
 
-    <!-- NEXT MONTH -->
     <div class="sec-hd">
       <div class="sec-title">📅 ${nm.label}</div>
       <span class="tag tag-blue">Upcoming</span>
     </div>
-    <div class="detail-box" style="margin-bottom:1.25rem">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-        <div style="text-align:center;padding:8px 4px;background:var(--green-light);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--green)">EST. INCOME</div>
-          <div style="font-size:13px;font-weight:800;color:var(--green)">₱${f(nm.income)}</div>
-        </div>
-        <div style="text-align:center;padding:8px 4px;background:var(--red-light);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:var(--red)">DUE</div>
-          <div style="font-size:13px;font-weight:800;color:var(--red)">₱${f(nm.totalDue)}</div>
-        </div>
-        <div style="text-align:center;padding:8px 4px;background:${nm.cashLeft>=0?'var(--green-light)':'var(--red-light)'};border-radius:8px">
-          <div style="font-size:10px;font-weight:700;color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">PROJECTED LEFT</div>
-          <div style="font-size:13px;font-weight:800;color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">${nm.cashLeft<0?'−':''}₱${f(Math.abs(nm.cashLeft))}</div>
-        </div>
+    <div class="dbox" style="margin-bottom:1.25rem">
+      <div class="month-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">EST. INCOME</div><div class="month-val" style="color:var(--green)">₱${f(nm.income)}</div></div>
+        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DUE</div><div class="month-val" style="color:var(--red)">₱${f(nm.totalDue)}</div></div>
+        <div class="month-box" style="background:${nm.cashLeft>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">PROJECTED LEFT</div><div class="month-val" style="color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">${nm.cashLeft<0?'−':''}₱${f(Math.abs(nm.cashLeft))}</div></div>
       </div>
-      ${dueListHTML(nm,false)}
+      ${dueListHTML(nm, false)}
     </div>
   `;
 }
-// ── DEBTS LIST ────────────────────────────────────────────────────
-window.renderDebts = async function(){
-  const all = await getAll('debts');
+
+var var_red_light = 'var(--red-light)';
+var var_red = 'var(--red)';
+
+// ══ DEBTS ═════════════════════════════════════════════════════════
+async function renderDebts() {
+  const all = await getData('debts');
   const catMap = {all:`All (${all.length})`,1:'🏠 Property',2:'🚗 Vehicle',3:'💵 Cash Loans',4:'💳 Revolving',5:'📦 BNPL',paid:'✅ Paid'};
   let items = activeFilter==='paid' ? all.filter(d=>d.paid)
     : activeFilter==='all' ? all.filter(d=>!d.paid)
-    : all.filter(d=>d.cat==activeFilter && !d.paid);
+    : all.filter(d=>String(d.cat)===String(activeFilter)&&!d.paid);
   if(activeSort==='balance_desc') items.sort((a,b)=>n(b.balance)-n(a.balance));
   else if(activeSort==='balance_asc') items.sort((a,b)=>n(a.balance)-n(b.balance));
   else if(activeSort==='months_asc') items.sort((a,b)=>(n(a.monthsLeft)||999)-(n(b.monthsLeft)||999));
-  else if(activeSort==='due_date') items.sort((a,b)=>{if(!a.nextDue)return 1;if(!b.nextDue)return -1;return new Date(a.nextDue)-new Date(b.nextDue);});
-  else items.sort((a,b)=>n(a.phase)-n(b.phase)||n(a.tier)-n(b.tier));
+  else if(activeSort==='due_date') items.sort((a,b)=>{ if(!a.nextDue)return 1; if(!b.nextDue)return -1; return new Date(a.nextDue)-new Date(b.nextDue); });
+  else items.sort((a,b)=>n(a.phase)-n(b.phase)||n(a.cat)-n(b.cat));
   const totalActive = all.filter(d=>!d.paid).reduce((s,d)=>s+n(d.balance),0);
   document.getElementById('main').innerHTML = `
-    <div class="sec-hd">
-      <div class="sec-title">All debts</div>
-      <span class="sec-count">${all.length} · ₱${f(totalActive)}</span>
-    </div>
+    <div class="sec-hd"><div class="sec-title">All debts</div><span class="sec-count">${all.length} · ₱${f(totalActive)}</span></div>
     <div class="filters">${Object.entries(catMap).map(([k,v])=>`<button class="fpill${activeFilter==k?' on':''}" onclick="setFilter('${k}')">${v}</button>`).join('')}</div>
     <div class="sort-row"><label>Sort</label>
       <select onchange="setSort(this.value)">
@@ -713,483 +566,352 @@ window.renderDebts = async function(){
     </div>
     ${items.length===0 ? emptyHTML('📋','No debts here','Tap + to add one') : items.map(d=>debtCard(d)).join('')}
   `;
-};
+}
 
-function debtCard(d){
-  const ac={1:'t1',2:'t2',3:'t3',4:'t4',5:'t5'}[d.cat]||'t3';
-  const tl={1:'🏠',2:'🚗',3:'💵',4:'💳',5:'📦'}[d.cat]||'💵';
-  const pl={1:'P1',2:'P2',3:'P3',4:'P4'}[d.phase]||'';
-  const today=new Date();today.setHours(0,0,0,0);
-  let dueTag='';
-  if(d.nextDue&&!d.paid){
-    const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
-    const dl=Math.ceil((dd-today)/(1000*60*60*24));
-    if(dl<=7) dueTag=`<span class="tag ${dl<0?'tag-red':dl===0?'tag-red':dl<=3?'tag-amber':'tag-blue'}">${dl<0?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d'}</span>`;
+function debtCard(d) {
+  const colCls = {1:'c1',2:'c2',3:'c3',4:'c4',5:'c5'}[d.cat]||'c3';
+  const icon = {1:'🏠',2:'🚗',3:'💵',4:'💳',5:'📦'}[d.cat]||'💵';
+  const phase = {1:'P1',2:'P2',3:'P3',4:'P4'}[d.phase]||'';
+  const today = new Date(); today.setHours(0,0,0,0);
+  let dueTag = '';
+  if(d.nextDue && !d.paid) {
+    const dd = new Date(d.nextDue); dd.setHours(0,0,0,0);
+    const dl = Math.ceil((dd-today)/(1000*60*60*24));
+    if(dl<=7) dueTag = `<span class="tag ${dl<0?'tag-red':dl===0?'tag-red':dl<=3?'tag-amber':'tag-blue'}">${dl<0?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d'}</span>`;
   }
-  const moTag=n(d.monthsLeft)>0?`<span class="tag ${n(d.monthsLeft)<=2?'tag-red':n(d.monthsLeft)<=5?'tag-amber':'tag-gray'}">${d.monthsLeft}mo</span>`:'';
+  const moTag = n(d.monthsLeft)>0 ? `<span class="tag ${n(d.monthsLeft)<=2?'tag-red':n(d.monthsLeft)<=5?'tag-amber':'tag-gray'}">${d.monthsLeft}mo</span>` : '';
   return `<div class="dcard${d.paid?' paid':''}" onclick="viewDebt('${d.id}')">
-    <div class="dcard-accent ${ac}"></div>
-    <div class="dcard-inner">
-      <div class="dcard-top">
-        <div style="min-width:0">
-          <div class="dcard-name">${tl} ${d.name}</div>
-          <div class="dcard-meta">${d.dueDay||'—'} ${d.nextDue?'· '+d.nextDue:''}</div>
-        </div>
+    <div class="da ${colCls}"></div>
+    <div class="di">
+      <div class="dt">
+        <div style="min-width:0"><div class="dn">${icon} ${d.name}</div><div class="dm">${d.dueDay||'—'}${d.nextDue?' · '+d.nextDue:''}</div></div>
         <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
-          <div class="dcard-bal">₱${f(d.balance)}</div>
-          <button class="paid-toggle${d.paid?' done':''}" onclick="togglePaid('${d.id}',${!!d.paid},event)">✓</button>
+          <div class="db">₱${f(d.balance)}</div>
+          <button class="ptoggle${d.paid?' done':''}" onclick="togglePaid('${d.id}',${!!d.paid},event)">✓</button>
         </div>
       </div>
-      <div class="dcard-tags">
-        ${moTag}
-        ${d.monthlyPay?`<span class="tag tag-gray">₱${f(d.monthlyPay)}/mo</span>`:''}
-        <span class="tag tag-navy">${pl}</span>
-        ${dueTag}
-        ${d.rate==='HIGH'?'<span class="tag tag-red">HIGH INTEREST</span>':''}
-      </div>
+      <div class="dtags">${moTag}${d.monthlyPay?`<span class="tag tag-gray">₱${f(d.monthlyPay)}/mo</span>`:''}<span class="tag tag-navy">${phase}</span>${dueTag}${d.rate==='HIGH'?'<span class="tag tag-red">HIGH RATE</span>':''}</div>
     </div>
   </div>`;
 }
 
-// ── LIVING EXPENSES ────────────────────────────────────────────────
-window.renderExpenses = async function(){
-  const all=await getAll('expenses');
-  const total=all.reduce((s,e)=>s+n(e.amount),0);
-  const cats=[
-    {key:'Housing',icon:'🏡',color:'#1E7E45'},
-    {key:'Utilities',icon:'⚡',color:'#1565C0'},
-    {key:'Food',icon:'🍚',color:'#D4870D'},
-    {key:'Farm',icon:'🌾',color:'#5D8A2F'},
-    {key:'Household',icon:'🏠',color:'#7B3FA0'},
-    {key:'Transport',icon:'⛽',color:'#2E86AB'},
-    {key:'Government',icon:'🏛️',color:'#4A4A6A'},
-    {key:'Other',icon:'📌',color:'#888'},
-  ];
-  document.getElementById('main').innerHTML=`
-    <div class="sec-hd">
-      <div class="sec-title">🏠 Living expenses</div>
-      <span class="sec-count">₱${f(total)}/mo</span>
+function setFilter(flt) { activeFilter=flt; renderDebts(); }
+function setSort(srt) { activeSort=srt; renderDebts(); }
+
+async function togglePaid(id, curr, e) {
+  e.stopPropagation();
+  await updateItem('debts', id, {paid:!curr});
+  toast(curr?'↩️ Marked outstanding':'✅ Marked paid!');
+  renderDebts();
+}
+
+// ══ DEBT DETAIL ════════════════════════════════════════════════════
+async function viewDebt(id) {
+  document.getElementById('fab').style.display='none';
+  showSpinner();
+  const all = await getData('debts');
+  const d = all.find(x=>x.id===id);
+  if(!d){ showView('debts'); return; }
+  const grads = {1:'linear-gradient(135deg,#1E7E45,#27AE60)',2:'linear-gradient(135deg,#1565C0,#1E88E5)',3:'linear-gradient(135deg,#D4870D,#F39C12)',4:'linear-gradient(135deg,#C0392B,#E74C3C)',5:'linear-gradient(135deg,#7B3FA0,#9B59B6)'};
+  const catNames = {1:'Real Estate',2:'Vehicle',3:'Cash / Digital Loan',4:'Revolving Credit',5:'BNPL / Installment'};
+  document.getElementById('main').innerHTML = `
+    <button class="back-btn" onclick="showView('debts')">← Back</button>
+    <div style="background:${grads[d.cat]||grads[3]};border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;color:#fff">
+      <div style="font-size:36px;margin-bottom:8px">💳</div>
+      <div style="font-size:21px;font-weight:800">${d.name}</div>
+      <div style="font-size:12px;opacity:.7;margin-top:4px">${catNames[d.cat]||''} · Phase ${d.phase||'—'}</div>
     </div>
+    <div class="dbox">
+      <div class="drow"><div class="dk">Balance</div><div class="dv" style="font-size:20px;font-weight:800;color:var(--red)">₱${f(d.balance)}</div></div>
+      <div class="drow"><div class="dk">Monthly payment</div><div class="dv">${d.monthlyPay?'₱'+f(d.monthlyPay):'TBC'}</div></div>
+      <div class="drow"><div class="dk">Months left</div><div class="dv">${d.monthsLeft||'TBC'}</div></div>
+      <div class="drow"><div class="dk">Due day</div><div class="dv">${d.dueDay||'—'}</div></div>
+      <div class="drow"><div class="dk">Next due date</div><div class="dv" style="font-weight:700;color:var(--red)">${d.nextDue||'—'}</div></div>
+      <div class="drow"><div class="dk">Interest / rate</div><div class="dv">${d.rate||'TBC'}</div></div>
+      <div class="drow"><div class="dk">Priority action</div><div class="dv" style="font-weight:700;color:var(--navy)">${d.action||'—'}</div></div>
+      <div class="drow"><div class="dk">Status</div><div class="dv">${d.paid?'✅ Paid':'🔴 Outstanding'}</div></div>
+      ${d.notes?`<div class="drow"><div class="dk">Notes</div><div class="dv">${d.notes}</div></div>`:''}
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1" onclick="openEdit('debts','${id}')">✏️ Edit</button>
+      <button class="btn btn-danger" style="flex:1" onclick="confirmDel('debts','${id}','${d.name.replace(/'/g,"\\\'")}')">🗑 Delete</button>
+    </div>`;
+}
+
+// ══ LIVING EXPENSES ════════════════════════════════════════════════
+async function renderExpenses() {
+  const all = await getData('expenses');
+  const total = all.reduce((s,e)=>s+n(e.amount),0);
+  const cats = ['Housing','Utilities','Food','Farm','Household','Transport','Government','Other'];
+  const catColors = {Housing:'#1E7E45',Utilities:'#1565C0',Food:'#D4870D',Farm:'#5D8A2F',Household:'#7B3FA0',Transport:'#2E86AB',Government:'#4A4A6A',Other:'#888'};
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">🏡 Living expenses</div><span class="sec-count">₱${f(total)}/mo</span></div>
     <div style="background:var(--amber-light);border:1px solid rgba(212,135,13,.2);border-radius:12px;padding:.875rem 1rem;margin-bottom:1rem">
       <div style="font-size:12px;font-weight:800;color:var(--amber);margin-bottom:3px">These reduce your debt-paying power</div>
-      <div style="font-size:12px;color:var(--text);line-height:1.5">These are recurring obligations — not debts. Tap any item to edit the amount. Tap + to add a new expense.</div>
+      <div style="font-size:12px;color:var(--text)">Recurring monthly obligations. Tap any to edit.</div>
     </div>
-    ${cats.map(c=>{
-      const items=all.filter(e=>(e.category||'Other')===c.key);
-      if(items.length===0)return'';
-      const ct=items.reduce((s,e)=>s+n(e.amount),0);
+    ${cats.map(cat=>{
+      const items = all.filter(e=>(e.category||'Other')===cat);
+      if(!items.length) return '';
+      const ct = items.reduce((s,e)=>s+n(e.amount),0);
+      const color = catColors[cat]||'#888';
       return `<div style="margin-bottom:.75rem">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.icon} ${c.key}</div>
-          <span style="font-size:12px;font-weight:800;color:${c.color}">₱${f(ct)}/mo</span>
+          <div style="font-size:12px;font-weight:700;color:var(--text-mid)">${cat}</div>
+          <span style="font-size:12px;font-weight:800;color:${color}">₱${f(ct)}/mo</span>
         </div>
         ${items.map(e=>`<div class="dcard" style="margin-bottom:6px" onclick="viewExpense('${e.id}')">
-          <div class="dcard-inner" style="padding-left:0">
-            <div class="dcard-top">
-              <div style="min-width:0">
-                <div style="font-size:13px;font-weight:700">${e.name}</div>
-                <div style="font-size:11px;color:var(--text-light)">${e.dueDay||'No due date set'} ${e.recurring?'· Recurring':''}</div>
-              </div>
-              <div style="text-align:right;flex-shrink:0">
-                <div style="font-size:14px;font-weight:800;color:${c.color}">₱${f(e.amount)}</div>
-                <div style="font-size:10px;color:var(--text-light)">per month</div>
-              </div>
+          <div class="di" style="padding-left:0">
+            <div class="dt">
+              <div><div class="dn" style="font-size:13px">${e.name}</div><div class="dm">${e.dueDay||'—'}${e.recurring?' · Recurring':''}</div></div>
+              <div><div style="font-size:14px;font-weight:800;color:${color}">₱${f(e.amount)}</div></div>
             </div>
             ${e.notes?`<div style="font-size:11px;color:var(--text-light);margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">${e.notes}</div>`:''}
           </div>
         </div>`).join('')}
       </div>`;
     }).join('')}
-    <div class="budget-total" style="margin-top:.5rem">
-      <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Total monthly living expenses</span>
-      <span style="font-size:18px;font-weight:800;color:#fff">₱${f(total)}</span>
-    </div>
-    ${all.length===0?`<div style="text-align:center;padding:2rem 1rem;color:var(--text-light)">
-      <div style="font-size:40px;margin-bottom:.5rem">🏠</div>
-      <div style="font-size:14px;font-weight:600;color:var(--text-mid)">No living expenses yet</div>
-      <div style="font-size:12px;margin-top:4px">Tap + to add your recurring expenses</div>
-    </div>`:''}
-  `;
+    ${all.length===0 ? emptyHTML('🏡','No expenses yet','Tap + to add your recurring expenses') : ''}
+    <div class="btotal"><span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Total monthly expenses</span><span style="font-size:18px;font-weight:800;color:#fff">₱${f(total)}</span></div>`;
 }
 
-window.viewExpense=async id=>{
+async function viewExpense(id) {
   document.getElementById('fab').style.display='none';
-  const all=await getAll('expenses');
-  const e=all.find(x=>x.id===id);
-  if(!e){await showView('expenses');return;}
-  document.getElementById('main').innerHTML=`
+  const all = await getData('expenses');
+  const e = all.find(x=>x.id===id);
+  if(!e){ showView('expenses'); return; }
+  document.getElementById('main').innerHTML = `
     <button class="back-btn" onclick="showView('expenses')">← Back</button>
-    <div class="detail-hero" style="background:linear-gradient(135deg,#4A4A6A,#6B6B9A)">
-      <div style="font-size:36px;margin-bottom:8px">🏠</div>
-      <div style="font-size:21px;font-weight:800;color:#fff">${e.name}</div>
-      <div style="font-size:12px;opacity:.7;margin-top:4px;color:#fff">Living expense · ${e.category||'—'}</div>
+    <div style="background:linear-gradient(135deg,#4A4A6A,#6B6B9A);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;color:#fff">
+      <div style="font-size:36px;margin-bottom:8px">🏡</div>
+      <div style="font-size:21px;font-weight:800">${e.name}</div>
+      <div style="font-size:12px;opacity:.7;margin-top:4px">Living expense · ${e.category||'—'}</div>
     </div>
-    <div class="detail-box">
-      <div class="detail-row"><div class="detail-key">Monthly amount</div><div class="detail-val big">₱${f(e.amount)}</div></div>
-      <div class="detail-row"><div class="detail-key">Due day</div><div class="detail-val">${e.dueDay||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Category</div><div class="detail-val">${e.category||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Recurring?</div><div class="detail-val">${e.recurring?'Yes — monthly':'No'}</div></div>
-      ${e.notes?`<div class="detail-row"><div class="detail-key">Notes</div><div class="detail-val">${e.notes}</div></div>`:''}
+    <div class="dbox">
+      <div class="drow"><div class="dk">Monthly amount</div><div class="dv" style="font-size:20px;font-weight:800">₱${f(e.amount)}</div></div>
+      <div class="drow"><div class="dk">Due day</div><div class="dv">${e.dueDay||'—'}</div></div>
+      <div class="drow"><div class="dk">Category</div><div class="dv">${e.category||'—'}</div></div>
+      <div class="drow"><div class="dk">Recurring?</div><div class="dv">${e.recurring?'Yes':'No'}</div></div>
+      ${e.notes?`<div class="drow"><div class="dk">Notes</div><div class="dv">${e.notes}</div></div>`:''}
     </div>
     <div style="display:flex;gap:10px">
-      <button class="btn btn-outline" style="flex:1" onclick="openEdit('expenses','${e.id}')">✏️ Edit</button>
-      <button class="btn btn-danger-soft" style="flex:1" onclick="confirmDel('expenses','${e.id}','${e.name.replace(/'/g,"\\'")}')">🗑 Delete</button>
-    </div>
-  `;
-};
+      <button class="btn btn-outline" style="flex:1" onclick="openEdit('expenses','${id}')">✏️ Edit</button>
+      <button class="btn btn-danger" style="flex:1" onclick="confirmDel('expenses','${id}','${e.name.replace(/'/g,"\\\'")}')">🗑 Delete</button>
+    </div>`;
+}
 
-// ── SNOWBALL ───────────────────────────────────────────────────────
-window.renderSnowball = function(){
-  document.getElementById('main').innerHTML=`
+// ══ SNOWBALL ═══════════════════════════════════════════════════════
+function renderSnowball() {
+  const steps = [
+    {name:"CIMB Installment Loan",monthly:3958.75,months:1,freed:3958.75,roll:"→ BillEase",payoff:"Aug 2026"},
+    {name:"Salmon Cash Loan",monthly:5980,months:1,freed:5980,roll:"→ CashMart",payoff:"Aug 2026"},
+    {name:"BillEase",monthly:10867.99,months:1,freed:10867.99,roll:"→ Atome Cash Loan",payoff:"Aug 2026"},
+    {name:"CashMart",monthly:16740,months:1,freed:16740,roll:"→ JuanHand",payoff:"Aug 2026"},
+    {name:"Atome Cash Loan",monthly:10236.11,months:1,freed:10236.11,roll:"→ San Jose Koop",payoff:"Aug 2026"},
+    {name:"JuanHand Cash Loan",monthly:23574,months:1,freed:23574,roll:"→ San Jose Koop",payoff:"Aug 2026"},
+    {name:"San Jose Koop House",monthly:27000,months:2,freed:27000,roll:"→ Colinas Verdes",payoff:"Sep 2026"},
+    {name:"Colinas Verdes",monthly:63111.11,months:5,freed:63111.11,roll:"→ Xpander+Wheeltek",payoff:"Dec 2026"},
+    {name:"Wheeltek Motorcycle",monthly:722,months:9,freed:722,roll:"→ Xpander",payoff:"Apr 2027"},
+    {name:"Ggives",monthly:1360.69,months:null,freed:1360.69,roll:"→ Gcredit",payoff:"TBD"},
+    {name:"Gcredit",monthly:1360.69,months:null,freed:1360.69,roll:"→ Cebuana",payoff:"TBD"},
+    {name:"Cebuana Interest",monthly:8603.48,months:null,freed:8603.48,roll:"→ Maya Cash Loan",payoff:"TBD"},
+    {name:"Maya Cash Loan",monthly:20000,months:null,freed:20000,roll:"→ Atome Card",payoff:"TBD"},
+    {name:"Atome Card",monthly:8220.08,months:null,freed:8220.08,roll:"→ Salmon Credit",payoff:"TBD"},
+    {name:"Mitsubishi Xpander",monthly:36749,months:6,freed:36749,roll:"→ CIMB Revi",payoff:"Jan 2027"},
+    {name:"CIMB Revi",monthly:10000,months:null,freed:10000,roll:"→ Salmon Credit",payoff:"TBD"},
+    {name:"Salmon Credit",monthly:15334.82,months:null,freed:15334.82,roll:"→ Maya CC",payoff:"TBD"},
+    {name:"Maya Credit Card",monthly:30000,months:null,freed:30000,roll:"→ Anchoridge",payoff:"TBD"},
+    {name:"Anchoridge Farm Lot",monthly:40277.78,months:28,freed:40277.78,roll:"🎉 DEBT FREE!",payoff:"Nov 2028"},
+  ];
+  document.getElementById('main').innerHTML = `
     <div class="sec-hd"><div class="sec-title">⛄ Cash-flow snowball</div></div>
-    <div class="detail-box" style="margin-bottom:1rem">
-      <div style="font-size:13px;color:var(--text-mid);line-height:1.6">Finish the shortest debts first. Each freed monthly payment <strong>rolls into the next debt</strong> — building unstoppable momentum.</div>
-    </div>
-    ${SNOWBALL_ORDER.map((s,i)=>`
-      <div class="sb-step">
+    <div class="dbox" style="margin-bottom:1rem"><div style="font-size:13px;color:var(--text-mid);line-height:1.6">Finish shortest debts first. Each freed monthly payment <strong>rolls into the next debt</strong> — building momentum to Nov 2028.</div></div>
+    ${steps.map((s,i)=>`
+      <div class="sb">
         <div style="display:flex;flex-direction:column;align-items:center">
-          <div class="sb-dot${s.payoff!=='TBD'?'':''}">${i+1}</div>
-          ${i<SNOWBALL_ORDER.length-1?'<div class="sb-line"></div>':''}
+          <div class="sb-dot${s.payoff!=='TBD'?' done':''}">${i+1}</div>
+          ${i<steps.length-1?'<div class="sb-line"></div>':''}
         </div>
         <div class="sb-body">
           <div style="display:flex;justify-content:space-between;gap:8px">
-            <div class="sb-name">${s.name}</div>
+            <div style="font-size:13px;font-weight:700">${s.name}</div>
             <div style="font-size:10px;color:var(--text-light);flex-shrink:0">${s.payoff}</div>
           </div>
-          <div class="sb-detail">₱${f(s.monthly||0)}/mo${s.months?' · '+s.months+'mo':''}</div>
-          <div class="sb-freed">Frees ₱${f(s.freed||0)}/mo ${s.roll}</div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:2px">₱${f(s.monthly||0)}/mo${s.months?' · '+s.months+'mo':''}</div>
+          <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:3px">Frees ₱${f(s.freed||0)}/mo ${s.roll}</div>
         </div>
-      </div>
-    `).join('')}
-    <div class="detail-box" style="margin-top:1rem;text-align:center;padding:1.25rem">
+      </div>`).join('')}
+    <div class="dbox" style="margin-top:1rem;text-align:center;padding:1.25rem">
       <div style="font-size:28px;margin-bottom:4px">🎉</div>
-      <div style="font-size:15px;font-weight:800;color:var(--green)">PROJECTED: DEBT FREE</div>
-      <div style="font-size:13px;color:var(--text-light);margin-top:4px">Final debt: Anchoridge Farm Lot · Nov 2028</div>
-    </div>
-  `;
+      <div style="font-size:15px;font-weight:800;color:var(--green)">DEBT FREE: NOV 2028</div>
+      <div style="font-size:13px;color:var(--text-light);margin-top:4px">Keep going — every peso counts!</div>
+    </div>`;
 }
 
-// ── BUDGET ─────────────────────────────────────────────────────────
-window.renderBudget = async function(){
-  const [debts,expenses,incomeList]=await Promise.all([getAll('debts'),getAll('expenses'),getAllIncome()]);
-  const mk=monthKey();
-  const mnInc=incomeList.find(i=>i.monthKey===mk);
-  const totalIncome=mnInc?n(mnInc.total):(n(profile?.totalIncome)||362000);
-  const incSources=mnInc?.sources||[];
-  const knownPay=debts.filter(d=>d.monthlyPay&&!d.paid).sort((a,b)=>n(b.monthlyPay)-n(a.monthlyPay));
-  const totalDebtPay=knownPay.reduce((s,d)=>s+n(d.monthlyPay),0);
-  const totalExpenses=expenses.reduce((s,e)=>s+n(e.amount),0);
-  const tbcCount=debts.filter(d=>!d.monthlyPay&&!d.paid).length;
-  const totalOut=totalDebtPay+totalExpenses;
-  const cashLeft=totalIncome-totalOut;
-
-  document.getElementById('main').innerHTML=`
-    <div class="sec-hd">
-      <div class="sec-title">💰 ${mkLabel(mk)} budget</div>
-      <button class="fpill on" onclick="openIncomeModal()">✏️ Income</button>
-    </div>
-
-    <div class="detail-box" style="margin-bottom:10px">
+// ══ BUDGET ════════════════════════════════════════════════════════
+async function renderBudget() {
+  const debts = await getData('debts');
+  const expenses = await getData('expenses');
+  const incomeList = await getIncomeList();
+  const mk = monthKey(0);
+  const mnInc = incomeList.find(i=>i.monthKey===mk);
+  const totalIncome = mnInc ? n(mnInc.total) : (n(profile?.totalIncome)||362000);
+  const knownPay = debts.filter(d=>d.monthlyPay&&!d.paid).sort((a,b)=>n(b.monthlyPay)-n(a.monthlyPay));
+  const totalDebtPay = knownPay.reduce((s,d)=>s+n(d.monthlyPay),0);
+  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+  const cashLeft = totalIncome - totalDebtPay - totalExp;
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">💰 ${mkLabel(mk)} budget</div><button class="fpill on" onclick="openIncomeModal()">✏️ Income</button></div>
+    <div class="dbox" style="margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Monthly income</div>
-      ${incSources.length===0?`<div style="text-align:center;padding:12px 0;color:var(--text-light);font-size:13px">No income set for this month.<br><button class="fpill on" style="margin-top:8px" onclick="openIncomeModal()">+ Add this month's income</button></div>`
-        :incSources.map(s=>`<div class="budget-row"><span class="budget-label">${s.label}</span><span class="budget-amount" style="color:var(--green)">₱${f(s.amount)}</span></div>`).join('')}
-      ${incSources.length>0?`<div class="budget-total"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total income</span><span style="font-size:16px;font-weight:800;color:#fff">₱${f(totalIncome)}</span></div>`:''}
+      ${mnInc && mnInc.sources ? mnInc.sources.map(s=>`<div class="brow"><span style="font-size:13px">${s.label}</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(s.amount)}</span></div>`).join('') : `<div style="text-align:center;padding:12px;color:var(--text-light);font-size:13px">No income set.<br><button class="fpill on" style="margin-top:8px" onclick="openIncomeModal()">+ Add income</button></div>`}
+      ${mnInc?`<div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total income</span><span style="font-size:16px;font-weight:800;color:#fff">₱${f(totalIncome)}</span></div>`:''}
     </div>
-
-    <div class="detail-box" style="margin-bottom:10px">
+    <div class="dbox" style="margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Debt payments</div>
-      ${knownPay.map(d=>`<div class="budget-row"><span class="budget-label">${d.name}</span><span class="budget-amount" style="color:var(--red)">−₱${f(d.monthlyPay)}</span></div>`).join('')}
-      ${tbcCount>0?`<div class="budget-row" style="opacity:.5"><span class="budget-label" style="font-size:12px">${tbcCount} debts — payment TBC</span><span>—</span></div>`:''}
-      <div class="budget-total"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total debt payments</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalDebtPay)}</span></div>
+      ${knownPay.map(d=>`<div class="brow"><span style="font-size:13px">${d.name}</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(d.monthlyPay)}</span></div>`).join('')}
+      <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total debt payments</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalDebtPay)}</span></div>
     </div>
-
-    <div class="detail-box" style="margin-bottom:10px">
+    <div class="dbox" style="margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Living expenses</div>
-      ${expenses.map(e=>`<div class="budget-row"><span class="budget-label">${e.name}</span><span class="budget-amount" style="color:var(--text-mid)">−₱${f(e.amount)}</span></div>`).join('')}
-      <div class="budget-total"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total living</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalExpenses)}</span></div>
+      ${expenses.map(e=>`<div class="brow"><span style="font-size:13px">${e.name}</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(e.amount)}</span></div>`).join('')}
+      <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total living</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalExp)}</span></div>
     </div>
-
-    <div class="detail-box">
-      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Summary</div>
-      <div class="budget-row"><span class="budget-label">Income</span><span class="budget-amount" style="color:var(--green)">₱${f(totalIncome)}</span></div>
-      <div class="budget-row"><span class="budget-label">Debt payments</span><span class="budget-amount" style="color:var(--red)">−₱${f(totalDebtPay)}</span></div>
-      <div class="budget-row"><span class="budget-label">Living expenses</span><span class="budget-amount" style="color:var(--text-mid)">−₱${f(totalExpenses)}</span></div>
-      <div class="budget-total" style="background:${cashLeft>=0?'var(--green)':'var(--red)'}">
+    <div class="dbox">
+      <div class="brow"><span style="font-size:13px">Income</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(totalIncome)}</span></div>
+      <div class="brow"><span style="font-size:13px">Debt payments</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(totalDebtPay)}</span></div>
+      <div class="brow"><span style="font-size:13px">Living expenses</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExp)}</span></div>
+      <div class="btotal" style="background:${cashLeft>=0?'var(--green)':'var(--red)'}">
         <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Net cash left</span>
         <span style="font-size:20px;font-weight:800;color:#fff">${cashLeft<0?'−':''}₱${f(Math.abs(cashLeft))}</span>
       </div>
-      ${cashLeft<0?`<div style="font-size:12px;color:var(--red);margin-top:10px;font-weight:700">⚠️ You are ₱${f(Math.abs(cashLeft))} short this month. Review which debts can be deferred or restructured.</div>`:`<div style="font-size:12px;color:var(--green);margin-top:10px">✅ ₱${f(cashLeft)} available for savings or debt acceleration.</div>`}
-    </div>
-
-    <div class="sec-hd" style="margin-top:1rem"><div class="sec-title">Income history</div></div>
-    ${incomeList.length===0?`<div class="detail-box"><div style="text-align:center;padding:12px;color:var(--text-light);font-size:13px">No income records yet.</div></div>`
-      :incomeList.map(inc=>`<div class="detail-box" style="margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-size:14px;font-weight:700">${mkLabel(inc.monthKey)}</div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:14px;font-weight:800;color:var(--green)">₱${f(inc.total)}</span>
-            <button class="fpill" style="font-size:10px;padding:2px 8px" onclick="openIncomeModal('${inc.monthKey}')">✏️</button>
-            <button class="fpill" style="font-size:10px;padding:2px 8px;color:var(--red);border-color:var(--red)" onclick="delIncome('${inc.id}')">🗑</button>
-          </div>
-        </div>
-        ${(inc.sources||[]).map(s=>`<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-mid);padding:3px 0"><span>${s.label}</span><span>₱${f(s.amount)}</span></div>`).join('')}
-      </div>`).join('')}
-  `;
+      <div style="font-size:12px;margin-top:10px;${cashLeft<0?'color:var(--red);font-weight:700':'color:var(--green)'}">
+        ${cashLeft<0?`⚠️ ₱${f(Math.abs(cashLeft))} short. Review and restructure debts.`:`✅ ₱${f(cashLeft)} available for savings or debt acceleration.`}
+      </div>
+    </div>`;
 }
 
-// ── INCOME MODAL ───────────────────────────────────────────────────
-let incRowCount=0;
-window.openIncomeModal=async(mk)=>{
-  const targetMk=mk||monthKey();
-  const incomeList=await getAllIncome();
-  const existing=incomeList.find(i=>i.monthKey===targetMk);
-  const sources=existing?.sources||[{label:'Wise (Maersk)',amount:222000},{label:'MSS 15th',amount:70000},{label:'MSS 30th',amount:70000}];
-  incRowCount=sources.length;
-  document.getElementById('modal-title').textContent=mkLabel(targetMk)+' income';
-  document.getElementById('modal-body').innerHTML=`
-    <div style="font-size:13px;color:var(--text-mid);margin-bottom:1rem">Each month's income can differ — update it every month for accurate cash flow.</div>
+// ══ INCOME MODAL ══════════════════════════════════════════════════
+let incRowCount = 0;
+function openIncomeModal() {
+  const mk = monthKey(0);
+  const incomeList = lsGet('income');
+  const existing = incomeList.find(i=>i.monthKey===mk);
+  const sources = existing?.sources || [{label:'Wise (Maersk)',amount:222000},{label:'MSS 15th',amount:70000},{label:'MSS 30th',amount:70000}];
+  incRowCount = sources.length;
+  document.getElementById('modal-title').textContent = mkLabel(mk) + ' income';
+  document.getElementById('modal-body').innerHTML = `
+    <div style="font-size:13px;color:var(--text-mid);margin-bottom:1rem">Income differs each month — update every month for accurate cash flow.</div>
     <div id="inc-rows">${sources.map((s,i)=>incRow(s.label,s.amount,i)).join('')}</div>
-    <button class="btn btn-outline" style="margin-bottom:.75rem" onclick="addIncRow()">+ Add income source</button>
+    <button class="btn btn-outline" style="margin-bottom:.75rem" onclick="addIncRow()">+ Add source</button>
     <div style="background:var(--navy);color:#fff;border-radius:var(--rsm);padding:12px 16px;display:flex;justify-content:space-between;margin-bottom:1rem">
       <span style="font-weight:700">Total</span><span id="inc-total" style="font-size:18px;font-weight:800">₱0</span>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-navy" style="flex:2" onclick="saveIncome('${targetMk}','${existing?.id||''}')">💾 Save income</button>
+      <button class="btn btn-navy" style="flex:2" onclick="saveIncome('${mk}','${existing?.id||''}')">💾 Save income</button>
     </div>`;
   document.getElementById('overlay').classList.add('open');
   calcIncTotal();
-};
-function incRow(label,amount,i){
-  return `<div class="income-source-row" id="irow-${i}" style="margin-bottom:.5rem">
+}
+
+function incRow(label, amount, i) {
+  return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-bottom:.5rem;align-items:center" id="irow-${i}">
     <input class="fi inc-lbl" placeholder="Source name" value="${label||''}" oninput="calcIncTotal()">
-    <input class="fi inc-amt" type="number" placeholder="0" value="${amount||''}" oninput="calcIncTotal()" style="text-align:right">
+    <input class="fi inc-amt" type="number" placeholder="0" value="${amount||''}" oninput="calcIncTotal()" style="width:110px;text-align:right">
     <button onclick="removeIncRow(${i})" style="width:34px;height:40px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--red-light);color:var(--red);cursor:pointer;font-size:16px">×</button>
   </div>`;
 }
-window.addIncRow=()=>{const c=document.getElementById('inc-rows');const d=document.createElement('div');d.innerHTML=incRow('','',(incRowCount++));c.appendChild(d.firstElementChild);calcIncTotal();};
-window.removeIncRow=i=>{const r=document.getElementById('irow-'+i);if(r){r.remove();calcIncTotal();}};
-window.calcIncTotal=()=>{const t=[...document.querySelectorAll('.inc-amt')].reduce((s,e)=>s+(parseFloat(e.value)||0),0);const el=document.getElementById('inc-total');if(el)el.textContent='₱'+t.toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});};
-window.saveIncome=async(mk,existingId)=>{
-  const labels=[...document.querySelectorAll('.inc-lbl')].map(e=>e.value.trim());
-  const amounts=[...document.querySelectorAll('.inc-amt')].map(e=>parseFloat(e.value)||0);
-  const sources=labels.map((l,i)=>({label:l||'Income',amount:amounts[i]})).filter(s=>s.amount>0);
-  if(!sources.length){toast('⚠️ Add at least one income amount');return;}
-  const total=sources.reduce((s,x)=>s+x.amount,0);
-  const data={monthKey:mk,sources,total,updatedAt:serverTimestamp()};
-  try{
-    if(existingId){await updateDoc(doc(db,'users',user.uid,'income',existingId),data);}
-    else{await addDoc(col('income'),{...data,createdAt:serverTimestamp()});}
-    await updateDoc(doc(db,'users',user.uid),{totalIncome:total});
-    profile={...profile,totalIncome:total};
-    toast('✅ Income saved!');closeModal();
-    if(activeView==='budget')await renderBudget();
-    else if(activeView==='dashboard')await renderDash();
-  }catch(e){toast('❌ Error: '+e.message);}
-};
-window.delIncome=async id=>{
-  if(!confirm('Delete this income record?'))return;
-  try{await deleteDoc(doc(db,'users',user.uid,'income',id));toast('🗑 Deleted');await renderBudget();}
-  catch(e){toast('❌ '+e.message);}
-};
 
-// ── SETTINGS ───────────────────────────────────────────────────────
-window.renderSettings = function(){
-  document.getElementById('fab').style.display='none';
-  document.getElementById('main').innerHTML=`
-    <div class="sec-hd"><div class="sec-title">⚙️ Settings & Diagnostics</div></div>
+function addIncRow() { const c=document.getElementById('inc-rows'); const d=document.createElement('div'); d.innerHTML=incRow('','',(incRowCount++)); c.appendChild(d.firstElementChild); calcIncTotal(); }
+function removeIncRow(i) { const r=document.getElementById('irow-'+i); if(r){r.remove();calcIncTotal();} }
+function calcIncTotal() { const t=[...document.querySelectorAll('.inc-amt')].reduce((s,e)=>s+(parseFloat(e.value)||0),0); const el=document.getElementById('inc-total'); if(el) el.textContent='₱'+f(t); }
 
-    <div class="detail-box" style="margin-bottom:10px">
-      <div class="detail-row"><div class="detail-key">Name</div><div class="detail-val">${profile?.name||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Email</div><div class="detail-val">${user?.email||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">User ID</div><div class="detail-val" style="font-size:11px;word-break:break-all">${user?.uid||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Firebase</div><div class="detail-val" style="color:var(--green)">🔥 Connected</div></div>
-      <div class="detail-row"><div class="detail-key">Project ID</div><div class="detail-val">${firebaseConfig.projectId}</div></div>
-    </div>
-
-    <div class="sec-hd"><div class="sec-title">🔧 Database tools</div></div>
-
-    <div class="detail-box" style="margin-bottom:10px">
-      <div style="font-size:13px;color:var(--text-mid);margin-bottom:12px;line-height:1.5">Use these tools if debts or expenses are not loading. Each button tests the connection and shows the result.</div>
-
-      <button class="btn btn-navy" style="margin-bottom:8px" onclick="diagRun()">🔍 Run diagnostics</button>
-      <div id="diag-result" style="font-size:12px;font-family:monospace;background:var(--parchment);border-radius:8px;padding:10px;margin-bottom:10px;display:none;line-height:1.8;word-break:break-all"></div>
-
-      <button class="btn btn-outline" style="margin-bottom:8px" onclick="forceSeedDebts()">🌱 Force seed debts (${SEED_DEBTS.length} debts)</button>
-      <button class="btn btn-outline" style="margin-bottom:8px" onclick="forceSeedExpenses()">🏠 Force seed living expenses (${SEED_EXPENSES.length} items)</button>
-      <button class="btn btn-danger-soft" style="margin-bottom:8px" onclick="clearAndReseed()">⚠️ Clear all & full reseed</button>
-      <div id="seed-result" style="font-size:12px;color:var(--green);margin-top:4px;min-height:16px"></div>
-    </div>
-
-    <div class="detail-box" style="margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Firestore rules — paste in Firebase Console → Firestore → Rules tab:</div>
-      <div style="font-size:11px;font-family:monospace;background:var(--parchment);padding:10px;border-radius:8px;line-height:1.8;white-space:pre">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == userId;
-    }
-    match /users/{userId}/{col=**} {
-      allow read, write: if request.auth != null
-        && request.auth.uid == userId;
-    }
-  }
-}</div>
-    </div>
-
-    <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 Sign out</button>
-  `;
+async function saveIncome(mk, existingId) {
+  const labels = [...document.querySelectorAll('.inc-lbl')].map(e=>e.value.trim());
+  const amounts = [...document.querySelectorAll('.inc-amt')].map(e=>parseFloat(e.value)||0);
+  const sources = labels.map((l,i)=>({label:l||'Income',amount:amounts[i]})).filter(s=>s.amount>0);
+  if(!sources.length){ toast('⚠️ Add at least one income amount'); return; }
+  const total = sources.reduce((s,x)=>s+x.amount,0);
+  const data = {monthKey:mk, sources, total, ts:Date.now()};
+  const list = lsGet('income');
+  if(existingId) { const idx=list.findIndex(x=>x.id===existingId); if(idx>=0) list[idx]={...list[idx],...data}; else list.push({...data,id:'inc_'+Date.now()}); }
+  else { list.push({...data, id:'inc_'+Date.now()}); }
+  lsSet('income', list);
+  try { await db.collection('users').doc(currentUser.uid).update({totalIncome:total}); } catch(e){}
+  if(profile) profile.totalIncome = total;
+  toast('✅ Income saved!');
+  closeModal();
+  if(activeView==='budget') renderBudget();
+  else if(activeView==='dashboard') renderDash();
 }
 
-window.diagRun = async () => {
-  const el = document.getElementById('diag-result');
-  el.style.display = 'block';
-  el.innerHTML = '⏳ Running diagnostics...';
-  const lines = [];
-  lines.push(`👤 User: ${user?.email}`);
-  lines.push(`🔑 UID: ${user?.uid}`);
-  lines.push(`📁 Project: ${firebaseConfig.projectId}`);
-
-  // Test write
-  try {
-    await updateDoc(doc(db,'users',user.uid),{lastDiag: new Date().toISOString()});
-    lines.push('✅ Write to users doc: OK');
-  } catch(e){ lines.push('❌ Write to users doc: '+e.message); }
-
-  // Test read user doc
-  try {
-    const s = await getDoc(doc(db,'users',user.uid));
-    lines.push('✅ Read users doc: OK — fields: '+Object.keys(s.data()||{}).join(', '));
-  } catch(e){ lines.push('❌ Read users doc: '+e.message); }
-
-  // Test read debts
-  try {
-    const s = await getDocs(collection(db,'users',user.uid,'debts'));
-    lines.push(`✅ Read debts: OK — ${s.size} documents found`);
-  } catch(e){ lines.push('❌ Read debts: '+e.message); }
-
-  // Test read expenses
-  try {
-    const s = await getDocs(collection(db,'users',user.uid,'expenses'));
-    lines.push(`✅ Read expenses: OK — ${s.size} documents found`);
-  } catch(e){ lines.push('❌ Read expenses: '+e.message); }
-
-  // Test write to debts
-  try {
-    const ref = await addDoc(collection(db,'users',user.uid,'debts'), {_test:true, name:'__test__', createdAt: serverTimestamp()});
-    await deleteDoc(ref);
-    lines.push('✅ Write to debts subcollection: OK');
-  } catch(e){ lines.push('❌ Write to debts subcollection: '+e.message); }
-
-  el.innerHTML = lines.join('<br>');
-};
-
-window.forceSeedDebts = async () => {
-  const res = document.getElementById('seed-result');
-  res.style.color = 'var(--amber)';
-  res.textContent = '⏳ Seeding debts...';
-  try {
-    const existing = await getDocs(collection(db,'users',user.uid,'debts'));
-    if(!existing.empty){
-      res.textContent = `ℹ️ ${existing.size} debts already exist. Use "Clear all & reseed" to replace them.`;
-      return;
+// ══ SETTINGS ══════════════════════════════════════════════════════
+function renderSettings() {
+  document.getElementById('fab').style.display='none';
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd"><div class="sec-title">⚙️ Settings</div></div>
+    <div class="dbox" style="margin-bottom:10px">
+      <div class="drow"><div class="dk">Name</div><div class="dv">${profile?.name||'—'}</div></div>
+      <div class="drow"><div class="dk">Email</div><div class="dv">${currentUser?.email||'—'}</div></div>
+      <div class="drow"><div class="dk">Firebase</div><div class="dv" style="color:var(--green)">🔥 Connected</div></div>
+    </div>
+    <div class="dbox" style="margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">🔧 Database tools</div>
+      <button class="btn btn-outline" style="margin-bottom:8px" onclick="forceSeed()">🌱 Reset & reseed all data</button>
+      <div id="seed-msg" style="font-size:13px;margin-top:4px;color:var(--green)"></div>
+    </div>
+    <div style="background:var(--amber-light);border:1px solid rgba(212,135,13,.3);border-radius:var(--radius);padding:1rem;margin-bottom:1rem;font-size:12px;line-height:1.6">
+      <strong>Firestore rules</strong> — paste in Firebase Console → Firestore → Rules:<br><br>
+      <code style="display:block;background:rgba(255,255,255,.7);padding:8px;border-radius:6px;font-size:11px;white-space:pre">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
-    const b = writeBatch(db);
-    SEED_DEBTS.forEach(d=>{
-      const r = doc(collection(db,'users',user.uid,'debts'));
-      b.set(r,{...d, createdAt:serverTimestamp()});
-    });
-    await b.commit();
-    await updateDoc(doc(db,'users',user.uid),{seededDebts:true});
-    res.style.color = 'var(--green)';
-    res.textContent = `✅ ${SEED_DEBTS.length} debts seeded successfully! Go to Debts tab.`;
-  } catch(e){
-    res.style.color = 'var(--red)';
-    res.textContent = '❌ Error: '+e.message;
   }
-};
+}</code>
+    </div>
+    <button class="btn btn-outline" onclick="doLogout()">🚪 Sign out</button>`;
+}
 
-window.forceSeedExpenses = async () => {
-  const res = document.getElementById('seed-result');
-  res.style.color = 'var(--amber)';
-  res.textContent = '⏳ Seeding living expenses...';
-  try {
-    const existing = await getDocs(collection(db,'users',user.uid,'expenses'));
-    if(!existing.empty){
-      res.textContent = `ℹ️ ${existing.size} expenses already exist. Use "Clear all & reseed" to replace them.`;
-      return;
-    }
-    const b = writeBatch(db);
-    SEED_EXPENSES.forEach(e=>{
-      const r = doc(collection(db,'users',user.uid,'expenses'));
-      b.set(r,{...e, createdAt:serverTimestamp()});
-    });
-    await b.commit();
-    await updateDoc(doc(db,'users',user.uid),{seededExpenses:true});
-    res.style.color = 'var(--green)';
-    res.textContent = `✅ ${SEED_EXPENSES.length} expenses seeded! Go to Living tab.`;
-  } catch(e){
-    res.style.color = 'var(--red)';
-    res.textContent = '❌ Error: '+e.message;
-  }
-};
+async function forceSeed() {
+  const msg = document.getElementById('seed-msg');
+  msg.style.color = 'var(--amber)'; msg.textContent = '⏳ Reseeding…';
+  const debts = SEED_DEBTS.map((d,i)=>({...d,id:'sd'+i,createdAt:new Date()}));
+  const expenses = SEED_EXPENSES.map((e,i)=>({...e,id:'se'+i,createdAt:new Date()}));
+  lsSet('debts', debts);
+  lsSet('expenses', expenses);
+  msg.style.color = 'var(--green)';
+  msg.textContent = `✅ Done! ${debts.length} debts + ${expenses.length} expenses loaded.`;
+  toast('✅ Data reseeded!');
+}
 
-window.clearAndReseed = async () => {
-  if(!confirm('This will DELETE all your debts and expenses and replace them with the original seed data. Continue?')) return;
-  const res = document.getElementById('seed-result');
-  res.style.color = 'var(--amber)';
-  res.textContent = '⏳ Clearing and reseeding...';
-  try {
-    // Delete existing debts
-    const dSnap = await getDocs(collection(db,'users',user.uid,'debts'));
-    const eSnap = await getDocs(collection(db,'users',user.uid,'expenses'));
-    const delBatch = writeBatch(db);
-    dSnap.docs.forEach(d => delBatch.delete(d.ref));
-    eSnap.docs.forEach(e => delBatch.delete(e.ref));
-    await delBatch.commit();
-
-    // Reseed
-    const seedBatch = writeBatch(db);
-    SEED_DEBTS.forEach(d=>{
-      const r = doc(collection(db,'users',user.uid,'debts'));
-      seedBatch.set(r,{...d, createdAt:serverTimestamp()});
-    });
-    SEED_EXPENSES.forEach(e=>{
-      const r = doc(collection(db,'users',user.uid,'expenses'));
-      seedBatch.set(r,{...e, createdAt:serverTimestamp()});
-    });
-    await seedBatch.commit();
-    await updateDoc(doc(db,'users',user.uid),{seededDebts:true, seededExpenses:true});
-
-    res.style.color = 'var(--green)';
-    res.textContent = `✅ Done! ${SEED_DEBTS.length} debts + ${SEED_EXPENSES.length} expenses loaded. Tap Home to see dashboard.`;
-  } catch(e){
-    res.style.color = 'var(--red)';
-    res.textContent = '❌ Error: '+e.message;
-  }
-};
-
-// ── ADD/EDIT MODAL ─────────────────────────────────────────────────
-window.openAdd=()=>{
-  editingId=null;editingType=activeView==='expenses'?'expenses':'debts';
-  document.getElementById('modal-title').textContent=editingType==='expenses'?'Add living expense':'Add debt';
-  document.getElementById('modal-body').innerHTML=editingType==='expenses'?expenseForm(null):debtForm(null);
+// ══ ADD/EDIT MODAL ════════════════════════════════════════════════
+function openAdd() {
+  editingId = null;
+  editingType = activeView==='expenses' ? 'expenses' : 'debts';
+  document.getElementById('modal-title').textContent = editingType==='expenses' ? 'Add expense' : 'Add debt';
+  document.getElementById('modal-body').innerHTML = editingType==='expenses' ? expenseForm(null) : debtForm(null);
   document.getElementById('overlay').classList.add('open');
-};
-window.openEdit=async(type,id)=>{
-  const all=await getAll(type);const d=all.find(x=>x.id===id);if(!d)return;
-  editingId=id;editingType=type;
-  document.getElementById('modal-title').textContent=(type==='expenses'?'Edit expense':'Edit debt')+' — '+d.name;
-  document.getElementById('modal-body').innerHTML=type==='expenses'?expenseForm(d):debtForm(d);
-  document.getElementById('overlay').classList.add('open');
-};
-window.tryClose=e=>{if(e.target===document.getElementById('overlay'))closeModal();};
-window.closeModal=()=>document.getElementById('overlay').classList.remove('open');
+}
 
-function debtForm(d){
-  const v=f=>d?.[f]??'';
-  const sel=(f,val)=>String(v(f))===String(val)?'selected':'';
+async function openEdit(type, id) {
+  const all = await getData(type);
+  const item = all.find(x=>x.id===id);
+  if(!item) return;
+  editingId = id; editingType = type;
+  document.getElementById('modal-title').textContent = 'Edit — '+item.name;
+  document.getElementById('modal-body').innerHTML = type==='expenses' ? expenseForm(item) : debtForm(item);
+  document.getElementById('overlay').classList.add('open');
+}
+
+function tryClose(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+function debtForm(d) {
+  const v = f => d?.[f]??'';
+  const sel = (f,val) => String(v(f))===String(val)?'selected':'';
   return `
     <div class="fl"><label>Lender / Debt name *</label><input class="fi" id="f-name" value="${v('name')}" placeholder="e.g. Maya Credit Card"></div>
     <div class="fi-row">
@@ -1200,7 +922,7 @@ function debtForm(d){
       <div class="fl"><label>Months left</label><input class="fi" id="f-monthsLeft" type="number" value="${v('monthsLeft')}" placeholder="TBC"></div>
       <div class="fl"><label>Interest / rate</label><input class="fi" id="f-rate" value="${v('rate')}" placeholder="HIGH, 3.5%, TBD"></div>
     </div>
-    <div class="fl"><label>Due day / schedule</label><input class="fi" id="f-dueDay" value="${v('dueDay')}" placeholder="e.g. 1st of month, Every 4th"></div>
+    <div class="fl"><label>Due day / schedule</label><input class="fi" id="f-dueDay" value="${v('dueDay')}" placeholder="e.g. 1st of month"></div>
     <div class="fl"><label>Next due date</label><input class="fi" id="f-nextDue" type="date" value="${v('nextDue')}"></div>
     <div class="fi-row">
       <div class="fl"><label>Category</label>
@@ -1219,23 +941,19 @@ function debtForm(d){
           <option value="4" ${sel('phase',4)}>Phase 4</option>
         </select></div>
     </div>
-    <div class="fl"><label>Priority action</label><input class="fi" id="f-action" value="${v('action')}" placeholder="e.g. PAY OFF NOW, Keep current"></div>
+    <div class="fl"><label>Priority action</label><input class="fi" id="f-action" value="${v('action')}" placeholder="e.g. PAY OFF NOW"></div>
     <div class="fl"><label>Notes</label><textarea class="fi" id="f-notes">${v('notes')}</textarea></div>
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;margin-bottom:.5rem">
-      <input type="checkbox" id="f-secured" ${d?.secured?'checked':''} style="width:18px;height:18px;cursor:pointer">
-      <label for="f-secured" style="font-size:14px;cursor:pointer">Asset-secured (property / vehicle)</label>
-    </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-navy" style="flex:2" onclick="saveForm()">💾 Save to Firestore</button>
+      <button class="btn btn-navy" style="flex:2" onclick="saveForm()">💾 Save</button>
     </div>`;
 }
 
-function expenseForm(e){
-  const v=f=>e?.[f]??'';
-  const sel=(f,val)=>String(v(f))===String(val)?'selected':'';
+function expenseForm(e) {
+  const v = f => e?.[f]??'';
+  const sel = (f,val) => String(v(f))===String(val)?'selected':'';
   return `
-    <div class="fl"><label>Expense name *</label><input class="fi" id="f-name" value="${v('name')}" placeholder="e.g. Meralco, Food Budget"></div>
+    <div class="fl"><label>Expense name *</label><input class="fi" id="f-name" value="${v('name')}" placeholder="e.g. Meralco"></div>
     <div class="fl"><label>Monthly amount (₱) *</label><input class="fi" id="f-amount" type="number" step="0.01" value="${v('amount')}" placeholder="0.00"></div>
     <div class="fl"><label>Due day</label><input class="fi" id="f-dueDay" value="${v('dueDay')}" placeholder="e.g. 16th, Variable"></div>
     <div class="fl"><label>Category</label>
@@ -1260,47 +978,38 @@ function expenseForm(e){
     </div>`;
 }
 
-window.saveForm=async()=>{
-  const g=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
-  const gb=id=>{const el=document.getElementById(id);return el?el.checked:false;};
-  if(editingType==='expenses'){
-    const nm=g('f-name'),amt=g('f-amount');
-    if(!nm||!amt){toast('⚠️ Name and amount required');return;}
-    const data={name:nm,amount:parseFloat(amt)||0,dueDay:g('f-dueDay'),category:g('f-category'),notes:g('f-notes'),recurring:gb('f-recurring')};
-    try{
-      if(editingId){await upd('expenses',editingId,data);toast('✅ Updated!');}
-      else{await add('expenses',data);toast('✅ Expense saved!');}
-      closeModal();await showView('expenses');
-    }catch(e){toast('❌ Error: '+e.message);}
+async function saveForm() {
+  const g = id => { const el=document.getElementById(id); return el?el.value.trim():''; };
+  const gb = id => { const el=document.getElementById(id); return el?el.checked:false; };
+  if(editingType==='expenses') {
+    const nm=g('f-name'), amt=g('f-amount');
+    if(!nm||!amt){ toast('⚠️ Name and amount required'); return; }
+    const data = {name:nm,amount:parseFloat(amt)||0,dueDay:g('f-dueDay'),category:g('f-category')||'Other',notes:g('f-notes'),recurring:gb('f-recurring')};
+    try {
+      if(editingId) { await updateItem('expenses',editingId,data); toast('✅ Updated!'); }
+      else { await saveItem('expenses',data); toast('✅ Expense saved!'); }
+      closeModal(); showView('expenses');
+    } catch(e){ toast('❌ Error: '+e.message); }
   } else {
-    const nm=g('f-name'),bal=g('f-balance');
-    if(!nm||!bal){toast('⚠️ Name and balance required');return;}
-    const data={name:nm,balance:parseFloat(bal)||0,monthlyPay:g('f-monthlyPay')?parseFloat(g('f-monthlyPay')):null,monthsLeft:g('f-monthsLeft')?parseInt(g('f-monthsLeft')):null,rate:g('f-rate')||'TBD',dueDay:g('f-dueDay'),nextDue:g('f-nextDue'),cat:parseInt(g('f-cat'))||3,tier:parseInt(g('f-cat'))<=2?1:parseInt(g('f-cat'))<=3?2:3,phase:parseInt(g('f-phase'))||1,action:g('f-action'),notes:g('f-notes'),secured:gb('f-secured'),paid:false};
-    try{
-      if(editingId){await upd('debts',editingId,data);toast('✅ Updated in Firestore!');}
-      else{await add('debts',data);toast('✅ Saved to Firestore!');}
-      closeModal();await showView('debts');
-    }catch(e){toast('❌ Error: '+e.message);}
+    const nm=g('f-name'), bal=g('f-balance');
+    if(!nm||!bal){ toast('⚠️ Name and balance required'); return; }
+    const data = {name:nm,balance:parseFloat(bal)||0,monthlyPay:g('f-monthlyPay')?parseFloat(g('f-monthlyPay')):null,monthsLeft:g('f-monthsLeft')?parseInt(g('f-monthsLeft')):null,rate:g('f-rate')||'TBD',dueDay:g('f-dueDay'),nextDue:g('f-nextDue'),cat:parseInt(g('f-cat'))||3,phase:parseInt(g('f-phase'))||1,action:g('f-action'),notes:g('f-notes'),paid:false};
+    try {
+      if(editingId) { await updateItem('debts',editingId,data); toast('✅ Updated!'); }
+      else { await saveItem('debts',data); toast('✅ Debt saved!'); }
+      closeModal(); showView('debts');
+    } catch(e){ toast('❌ Error: '+e.message); }
   }
-};
-
-// ── DELETE ─────────────────────────────────────────────────────────
-window.confirmDel=(type,id,name)=>{
-  if(confirm(`Delete "${name}"?\n\nThis removes it from Firestore permanently.`))doDelete(type,id);
-};
-async function doDelete(type,id){
-  try{await del(type,id);toast('🗑 Deleted');await showView(type==='expenses'?'expenses':'debts');}
-  catch(e){toast('❌ '+e.message);}
 }
 
-// ── HELPERS ────────────────────────────────────────────────────────
-function f(num){return(parseFloat(num)||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});}
-function n(val){return parseFloat(val)||0;}
-function emptyHTML(icon,text,hint){return`<div class="empty"><div class="empty-icon">${icon}</div><div class="empty-text">${text}</div><div class="empty-hint">${hint}</div></div>`;}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function confirmDel(type,id,name) { if(confirm(`Delete "${name}"?\nThis cannot be undone.`)) doDelete(type,id); }
+async function doDelete(type,id) {
+  try { await deleteItem(type,id); toast('🗑 Deleted'); showView(type==='expenses'?'expenses':'debts'); }
+  catch(e){ toast('❌ '+e.message); }
+}
 
-document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
-document.getElementById('rp').addEventListener('keydown',e=>{if(e.key==='Enter')window.doRegister();});
+document.getElementById('lp').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('rp').addEventListener('keydown',e=>{ if(e.key==='Enter') doRegister(); });
 </script>
 </body>
 </html>
