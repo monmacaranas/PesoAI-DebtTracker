@@ -331,50 +331,164 @@ async function loadProfile() {
   } else {
     profile=snap.data();
   }
-  // Seed debts if not yet seeded
-  if(!profile.seededDebts){
-    const dSnap=await getDocs(collection(db,'users',user.uid,'debts'));
-    if(dSnap.empty){
-      const b=writeBatch(db);
-      SEED_DEBTS.forEach(d=>{const r=doc(collection(db,'users',user.uid,'debts'));b.set(r,{...d,createdAt:serverTimestamp()});});
-      await b.commit();
-    }
-    await updateDoc(doc(db,'users',user.uid),{seededDebts:true});
-    profile.seededDebts=true;
+  // Always seed localStorage if empty (works offline/without Firestore rules)
+  if(lsGet('debts').length===0){
+    const localDebts=SEED_DEBTS.map((d,i)=>({...d,id:'seed_d_'+i,createdAt:{seconds:Math.floor(Date.now()/1000)+i}}));
+    lsSet('debts',localDebts);
+    console.log('Seeded',localDebts.length,'debts to localStorage');
   }
-  // Seed expenses independently — always check if empty
-  const eSnap=await getDocs(collection(db,'users',user.uid,'expenses'));
-  if(eSnap.empty){
+  if(lsGet('expenses').length===0){
+    const localExp=SEED_EXPENSES.map((e,i)=>({...e,id:'seed_e_'+i,createdAt:{seconds:Math.floor(Date.now()/1000)+i}}));
+    lsSet('expenses',localExp);
+    console.log('Seeded',localExp.length,'expenses to localStorage');
+  }
+
+  // Also try Firestore in background
+  if(!profile.seededDebts){
+    try{
+      const dSnap=await getDocs(collection(db,'users',user.uid,'debts'));
+      if(dSnap.empty){
+        const b=writeBatch(db);
+        SEED_DEBTS.forEach(d=>{const r=doc(collection(db,'users',user.uid,'debts'));b.set(r,{...d,createdAt:serverTimestamp()});});
+        await b.commit();
+      }
+      await updateDoc(doc(db,'users',user.uid),{seededDebts:true});
+      profile.seededDebts=true;
+    }catch(e){ console.warn('Firestore debt seed failed:',e.message); }
+  }
+  try{
+    const eSnap=await getDocs(collection(db,'users',user.uid,'expenses'));
+    if(eSnap.empty){
+      const b=writeBatch(db);
+      SEED_EXPENSES.forEach(e=>{const r=doc(collection(db,'users',user.uid,'expenses'));b.set(r,{...e,createdAt:serverTimestamp()});});
+      await b.commit();
+      profile.seededExpenses=true;
+    }
+  }catch(e){ console.warn('Firestore expense seed failed:',e.message); }
+}
+
+// ── STORAGE: localStorage + Firestore hybrid ──────────────────────
+// Data always saves to localStorage immediately (instant load).
+// Firestore sync happens in background — works even if rules aren't set yet.
+let useFirestore = true; // set false if all Firestore ops fail
+
+function lsKey(name){ return `pesoai_${user.uid}_${name}`; }
+
+function lsGet(name){
+  try{ const d=localStorage.getItem(lsKey(name)); return d?JSON.parse(d):[]; }
+  catch{ return []; }
+}
+function lsSet(name,data){
+  try{ localStorage.setItem(lsKey(name), JSON.stringify(data)); }
+  catch(e){ console.warn('localStorage full',e); }
+}
+function lsDel(name,id){
+  const items=lsGet(name).filter(x=>x.id!==id);
+  lsSet(name,items);
+}
+function lsUpd(name,id,data){
+  const items=lsGet(name).map(x=>x.id===id?{...x,...data}:x);
+  lsSet(name,items);
+}
+function lsAdd(name,data){
+  const id='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  const item={...data,id,createdAt:{seconds:Math.floor(Date.now()/1000)}};
+  lsSet(name,[...lsGet(name),item]);
+  return id;
+}
+
+function col(name){return collection(db,'users',user.uid,name);}
+
+async function getAll(name){
+  // 1. Always return localStorage immediately (fast)
+  const local = lsGet(name);
+
+  // 2. Try Firestore in background to sync
+  if(useFirestore){
+    try{
+      const s=await getDocs(col(name));
+      if(s.size>0){
+        const fresh=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+          const ta=a.createdAt?.seconds||0,tb=b.createdAt?.seconds||0;
+          return ta-tb;
+        });
+        lsSet(name,fresh); // update localStorage with Firestore data
+        return fresh;
+      } else if(local.length>0){
+        // Firestore empty but we have local data — push to Firestore
+        syncLocalToFirestore(name,local);
+        return local;
+      }
+    } catch(e){
+      console.warn('Firestore read failed for',name,e.code||e.message);
+      if(e.code==='permission-denied') useFirestore=false;
+    }
+  }
+  return local;
+}
+
+async function syncLocalToFirestore(name,items){
+  try{
     const b=writeBatch(db);
-    SEED_EXPENSES.forEach(e=>{const r=doc(collection(db,'users',user.uid,'expenses'));b.set(r,{...e,createdAt:serverTimestamp()});});
+    items.forEach(item=>{
+      const {id,...data}=item;
+      const r=doc(collection(db,'users',user.uid,name));
+      b.set(r,{...data,createdAt:serverTimestamp()});
+    });
     await b.commit();
-    await updateDoc(doc(db,'users',user.uid),{seededExpenses:true});
-    profile.seededExpenses=true;
+    console.log('Synced',items.length,'items to Firestore:',name);
+  }catch(e){ console.warn('Sync to Firestore failed:',e.message); }
+}
+
+async function add(name,data){
+  // Save to localStorage first
+  const id=lsAdd(name,data);
+  // Try Firestore
+  if(useFirestore){
+    try{
+      const ref=await addDoc(col(name),{...data,createdAt:serverTimestamp()});
+      // Update localStorage with real Firestore ID
+      lsUpd(name,id,{id:ref.id});
+      return ref;
+    }catch(e){ console.warn('Firestore add failed:',e.message); }
+  }
+  return {id};
+}
+
+async function upd(name,id,data){
+  lsUpd(name,id,data);
+  if(useFirestore){
+    try{ await updateDoc(doc(db,'users',user.uid,name,id),data); }
+    catch(e){ console.warn('Firestore update failed:',e.message); }
   }
 }
 
-// ── FIRESTORE ─────────────────────────────────────────────────────
-function col(name){return collection(db,'users',user.uid,name);}
-async function getAll(name){
-  // No orderBy to avoid Firestore index requirements on subcollections
-  const s=await getDocs(col(name));
-  return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
-    const ta=a.createdAt?.seconds||0, tb=b.createdAt?.seconds||0;
-    return ta-tb;
-  });
+async function del(name,id){
+  lsDel(name,id);
+  if(useFirestore){
+    try{ await deleteDoc(doc(db,'users',user.uid,name,id)); }
+    catch(e){ console.warn('Firestore delete failed:',e.message); }
+  }
 }
-async function add(name,data){return await addDoc(col(name),{...data,createdAt:serverTimestamp()});}
-async function upd(name,id,data){await updateDoc(doc(db,'users',user.uid,name,id),data);}
-async function del(name,id){await deleteDoc(doc(db,'users',user.uid,name,id));}
+
 async function getAllIncome(){
-  try{
-    const s=await getDocs(col('income'));
-    return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
-      const ta=a.createdAt?.seconds||0, tb=b.createdAt?.seconds||0;
-      return tb-ta; // newest first
-    });
-  }catch{return[];}
+  const local=lsGet('income');
+  if(useFirestore){
+    try{
+      const s=await getDocs(col('income'));
+      if(s.size>0){
+        const fresh=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+          const tb=b.createdAt?.seconds||0,ta=a.createdAt?.seconds||0;
+          return tb-ta;
+        });
+        lsSet('income',fresh);
+        return fresh;
+      }
+    }catch(e){ console.warn('Firestore income read failed:',e.message); }
+  }
+  return local.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
 }
+// getAllIncome defined in hybrid storage section above
 function monthKey(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
 function mkLabel(k){const[y,m]=k.split('-');return new Date(y,m-1,1).toLocaleDateString('en-PH',{month:'long',year:'numeric'});}
 
@@ -815,28 +929,178 @@ window.delIncome=async id=>{
 function renderSettings(){
   document.getElementById('fab').style.display='none';
   document.getElementById('main').innerHTML=`
-    <div class="sec-hd"><div class="sec-title">Settings</div></div>
+    <div class="sec-hd"><div class="sec-title">⚙️ Settings & Diagnostics</div></div>
+
     <div class="detail-box" style="margin-bottom:10px">
       <div class="detail-row"><div class="detail-key">Name</div><div class="detail-val">${profile?.name||'—'}</div></div>
       <div class="detail-row"><div class="detail-key">Email</div><div class="detail-val">${user?.email||'—'}</div></div>
+      <div class="detail-row"><div class="detail-key">User ID</div><div class="detail-val" style="font-size:11px;word-break:break-all">${user?.uid||'—'}</div></div>
       <div class="detail-row"><div class="detail-key">Firebase</div><div class="detail-val" style="color:var(--green)">🔥 Connected</div></div>
       <div class="detail-row"><div class="detail-key">Project ID</div><div class="detail-val">${firebaseConfig.projectId}</div></div>
-      <div class="detail-row"><div class="detail-key">App version</div><div class="detail-val">v3.0 — Full rebuild</div></div>
     </div>
-    <div class="config-box">
-      <strong>Firestore rules</strong> — set in Firebase Console → Firestore → Rules:
-      <code>rules_version = '2';
+
+    <div class="sec-hd"><div class="sec-title">🔧 Database tools</div></div>
+
+    <div class="detail-box" style="margin-bottom:10px">
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:12px;line-height:1.5">Use these tools if debts or expenses are not loading. Each button tests the connection and shows the result.</div>
+
+      <button class="btn btn-navy" style="margin-bottom:8px" onclick="diagRun()">🔍 Run diagnostics</button>
+      <div id="diag-result" style="font-size:12px;font-family:monospace;background:var(--parchment);border-radius:8px;padding:10px;margin-bottom:10px;display:none;line-height:1.8;word-break:break-all"></div>
+
+      <button class="btn btn-outline" style="margin-bottom:8px" onclick="forceSeedDebts()">🌱 Force seed debts (${SEED_DEBTS.length} debts)</button>
+      <button class="btn btn-outline" style="margin-bottom:8px" onclick="forceSeedExpenses()">🏠 Force seed living expenses (${SEED_EXPENSES.length} items)</button>
+      <button class="btn btn-danger-soft" style="margin-bottom:8px" onclick="clearAndReseed()">⚠️ Clear all & full reseed</button>
+      <div id="seed-result" style="font-size:12px;color:var(--green);margin-top:4px;min-height:16px"></div>
+    </div>
+
+    <div class="detail-box" style="margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Firestore rules — paste in Firebase Console → Firestore → Rules tab:</div>
+      <div style="font-size:11px;font-family:monospace;background:var(--parchment);padding:10px;border-radius:8px;line-height:1.8;white-space:pre">rules_version = '2';
 service cloud.firestore {
-  match /databases/{db}/documents {
-    match /users/{uid}/{col=**} {
-      allow read, write: if request.auth.uid == uid;
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+    match /users/{userId}/{col=**} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
     }
   }
-}</code>
+}</div>
     </div>
-    <button class="btn btn-outline" style="width:100%" onclick="doLogout()">🚪 Sign out</button>
+
+    <button class="btn btn-outline" style="width:100%;margin-bottom:8px" onclick="doLogout()">🚪 Sign out</button>
   `;
 }
+
+window.diagRun = async () => {
+  const el = document.getElementById('diag-result');
+  el.style.display = 'block';
+  el.innerHTML = '⏳ Running diagnostics...';
+  const lines = [];
+  lines.push(`👤 User: ${user?.email}`);
+  lines.push(`🔑 UID: ${user?.uid}`);
+  lines.push(`📁 Project: ${firebaseConfig.projectId}`);
+
+  // Test write
+  try {
+    await updateDoc(doc(db,'users',user.uid),{lastDiag: new Date().toISOString()});
+    lines.push('✅ Write to users doc: OK');
+  } catch(e){ lines.push('❌ Write to users doc: '+e.message); }
+
+  // Test read user doc
+  try {
+    const s = await getDoc(doc(db,'users',user.uid));
+    lines.push('✅ Read users doc: OK — fields: '+Object.keys(s.data()||{}).join(', '));
+  } catch(e){ lines.push('❌ Read users doc: '+e.message); }
+
+  // Test read debts
+  try {
+    const s = await getDocs(collection(db,'users',user.uid,'debts'));
+    lines.push(`✅ Read debts: OK — ${s.size} documents found`);
+  } catch(e){ lines.push('❌ Read debts: '+e.message); }
+
+  // Test read expenses
+  try {
+    const s = await getDocs(collection(db,'users',user.uid,'expenses'));
+    lines.push(`✅ Read expenses: OK — ${s.size} documents found`);
+  } catch(e){ lines.push('❌ Read expenses: '+e.message); }
+
+  // Test write to debts
+  try {
+    const ref = await addDoc(collection(db,'users',user.uid,'debts'), {_test:true, name:'__test__', createdAt: serverTimestamp()});
+    await deleteDoc(ref);
+    lines.push('✅ Write to debts subcollection: OK');
+  } catch(e){ lines.push('❌ Write to debts subcollection: '+e.message); }
+
+  el.innerHTML = lines.join('<br>');
+};
+
+window.forceSeedDebts = async () => {
+  const res = document.getElementById('seed-result');
+  res.style.color = 'var(--amber)';
+  res.textContent = '⏳ Seeding debts...';
+  try {
+    const existing = await getDocs(collection(db,'users',user.uid,'debts'));
+    if(!existing.empty){
+      res.textContent = `ℹ️ ${existing.size} debts already exist. Use "Clear all & reseed" to replace them.`;
+      return;
+    }
+    const b = writeBatch(db);
+    SEED_DEBTS.forEach(d=>{
+      const r = doc(collection(db,'users',user.uid,'debts'));
+      b.set(r,{...d, createdAt:serverTimestamp()});
+    });
+    await b.commit();
+    await updateDoc(doc(db,'users',user.uid),{seededDebts:true});
+    res.style.color = 'var(--green)';
+    res.textContent = `✅ ${SEED_DEBTS.length} debts seeded successfully! Go to Debts tab.`;
+  } catch(e){
+    res.style.color = 'var(--red)';
+    res.textContent = '❌ Error: '+e.message;
+  }
+};
+
+window.forceSeedExpenses = async () => {
+  const res = document.getElementById('seed-result');
+  res.style.color = 'var(--amber)';
+  res.textContent = '⏳ Seeding living expenses...';
+  try {
+    const existing = await getDocs(collection(db,'users',user.uid,'expenses'));
+    if(!existing.empty){
+      res.textContent = `ℹ️ ${existing.size} expenses already exist. Use "Clear all & reseed" to replace them.`;
+      return;
+    }
+    const b = writeBatch(db);
+    SEED_EXPENSES.forEach(e=>{
+      const r = doc(collection(db,'users',user.uid,'expenses'));
+      b.set(r,{...e, createdAt:serverTimestamp()});
+    });
+    await b.commit();
+    await updateDoc(doc(db,'users',user.uid),{seededExpenses:true});
+    res.style.color = 'var(--green)';
+    res.textContent = `✅ ${SEED_EXPENSES.length} expenses seeded! Go to Living tab.`;
+  } catch(e){
+    res.style.color = 'var(--red)';
+    res.textContent = '❌ Error: '+e.message;
+  }
+};
+
+window.clearAndReseed = async () => {
+  if(!confirm('This will DELETE all your debts and expenses and replace them with the original seed data. Continue?')) return;
+  const res = document.getElementById('seed-result');
+  res.style.color = 'var(--amber)';
+  res.textContent = '⏳ Clearing and reseeding...';
+  try {
+    // Delete existing debts
+    const dSnap = await getDocs(collection(db,'users',user.uid,'debts'));
+    const eSnap = await getDocs(collection(db,'users',user.uid,'expenses'));
+    const delBatch = writeBatch(db);
+    dSnap.docs.forEach(d => delBatch.delete(d.ref));
+    eSnap.docs.forEach(e => delBatch.delete(e.ref));
+    await delBatch.commit();
+
+    // Reseed
+    const seedBatch = writeBatch(db);
+    SEED_DEBTS.forEach(d=>{
+      const r = doc(collection(db,'users',user.uid,'debts'));
+      seedBatch.set(r,{...d, createdAt:serverTimestamp()});
+    });
+    SEED_EXPENSES.forEach(e=>{
+      const r = doc(collection(db,'users',user.uid,'expenses'));
+      seedBatch.set(r,{...e, createdAt:serverTimestamp()});
+    });
+    await seedBatch.commit();
+    await updateDoc(doc(db,'users',user.uid),{seededDebts:true, seededExpenses:true});
+
+    res.style.color = 'var(--green)';
+    res.textContent = `✅ Done! ${SEED_DEBTS.length} debts + ${SEED_EXPENSES.length} expenses loaded. Tap Home to see dashboard.`;
+  } catch(e){
+    res.style.color = 'var(--red)';
+    res.textContent = '❌ Error: '+e.message;
+  }
+};
 
 // ── ADD/EDIT MODAL ─────────────────────────────────────────────────
 window.openAdd=()=>{
