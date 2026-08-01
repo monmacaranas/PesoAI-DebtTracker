@@ -508,7 +508,7 @@ window.showView = async v => {
 };
 
 // ── DASHBOARD ─────────────────────────────────────────────────────
-async function renderDash(){
+window.renderDash = async function(){
   const [debts,incomeList,expenses]=await Promise.all([getAll('debts'),getAllIncome(),getAll('expenses')]);
   const now=new Date(),hr=now.getHours();
   const today=new Date();today.setHours(0,0,0,0);
@@ -683,8 +683,76 @@ async function renderDash(){
     </div>
   `;
 }
+// ── DEBTS LIST ────────────────────────────────────────────────────
+window.renderDebts = async function(){
+  const all = await getAll('debts');
+  const catMap = {all:`All (${all.length})`,1:'🏠 Property',2:'🚗 Vehicle',3:'💵 Cash Loans',4:'💳 Revolving',5:'📦 BNPL',paid:'✅ Paid'};
+  let items = activeFilter==='paid' ? all.filter(d=>d.paid)
+    : activeFilter==='all' ? all.filter(d=>!d.paid)
+    : all.filter(d=>d.cat==activeFilter && !d.paid);
+  if(activeSort==='balance_desc') items.sort((a,b)=>n(b.balance)-n(a.balance));
+  else if(activeSort==='balance_asc') items.sort((a,b)=>n(a.balance)-n(b.balance));
+  else if(activeSort==='months_asc') items.sort((a,b)=>(n(a.monthsLeft)||999)-(n(b.monthsLeft)||999));
+  else if(activeSort==='due_date') items.sort((a,b)=>{if(!a.nextDue)return 1;if(!b.nextDue)return -1;return new Date(a.nextDue)-new Date(b.nextDue);});
+  else items.sort((a,b)=>n(a.phase)-n(b.phase)||n(a.tier)-n(b.tier));
+  const totalActive = all.filter(d=>!d.paid).reduce((s,d)=>s+n(d.balance),0);
+  document.getElementById('main').innerHTML = `
+    <div class="sec-hd">
+      <div class="sec-title">All debts</div>
+      <span class="sec-count">${all.length} · ₱${f(totalActive)}</span>
+    </div>
+    <div class="filters">${Object.entries(catMap).map(([k,v])=>`<button class="fpill${activeFilter==k?' on':''}" onclick="setFilter('${k}')">${v}</button>`).join('')}</div>
+    <div class="sort-row"><label>Sort</label>
+      <select onchange="setSort(this.value)">
+        <option value="phase" ${activeSort==='phase'?'selected':''}>Phase / Priority</option>
+        <option value="due_date" ${activeSort==='due_date'?'selected':''}>Next due date</option>
+        <option value="months_asc" ${activeSort==='months_asc'?'selected':''}>Months left ↑</option>
+        <option value="balance_desc" ${activeSort==='balance_desc'?'selected':''}>Balance ↓</option>
+        <option value="balance_asc" ${activeSort==='balance_asc'?'selected':''}>Balance ↑</option>
+      </select>
+    </div>
+    ${items.length===0 ? emptyHTML('📋','No debts here','Tap + to add one') : items.map(d=>debtCard(d)).join('')}
+  `;
+};
+
+function debtCard(d){
+  const ac={1:'t1',2:'t2',3:'t3',4:'t4',5:'t5'}[d.cat]||'t3';
+  const tl={1:'🏠',2:'🚗',3:'💵',4:'💳',5:'📦'}[d.cat]||'💵';
+  const pl={1:'P1',2:'P2',3:'P3',4:'P4'}[d.phase]||'';
+  const today=new Date();today.setHours(0,0,0,0);
+  let dueTag='';
+  if(d.nextDue&&!d.paid){
+    const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
+    const dl=Math.ceil((dd-today)/(1000*60*60*24));
+    if(dl<=7) dueTag=`<span class="tag ${dl<0?'tag-red':dl===0?'tag-red':dl<=3?'tag-amber':'tag-blue'}">${dl<0?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d'}</span>`;
+  }
+  const moTag=n(d.monthsLeft)>0?`<span class="tag ${n(d.monthsLeft)<=2?'tag-red':n(d.monthsLeft)<=5?'tag-amber':'tag-gray'}">${d.monthsLeft}mo</span>`:'';
+  return `<div class="dcard${d.paid?' paid':''}" onclick="viewDebt('${d.id}')">
+    <div class="dcard-accent ${ac}"></div>
+    <div class="dcard-inner">
+      <div class="dcard-top">
+        <div style="min-width:0">
+          <div class="dcard-name">${tl} ${d.name}</div>
+          <div class="dcard-meta">${d.dueDay||'—'} ${d.nextDue?'· '+d.nextDue:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0">
+          <div class="dcard-bal">₱${f(d.balance)}</div>
+          <button class="paid-toggle${d.paid?' done':''}" onclick="togglePaid('${d.id}',${!!d.paid},event)">✓</button>
+        </div>
+      </div>
+      <div class="dcard-tags">
+        ${moTag}
+        ${d.monthlyPay?`<span class="tag tag-gray">₱${f(d.monthlyPay)}/mo</span>`:''}
+        <span class="tag tag-navy">${pl}</span>
+        ${dueTag}
+        ${d.rate==='HIGH'?'<span class="tag tag-red">HIGH INTEREST</span>':''}
+      </div>
+    </div>
+  </div>`;
+}
+
 // ── LIVING EXPENSES ────────────────────────────────────────────────
-async function renderExpenses(){
+window.renderExpenses = async function(){
   const all=await getAll('expenses');
   const total=all.reduce((s,e)=>s+n(e.amount),0);
   const cats=[
@@ -771,7 +839,7 @@ window.viewExpense=async id=>{
 };
 
 // ── SNOWBALL ───────────────────────────────────────────────────────
-function renderSnowball(){
+window.renderSnowball = function(){
   document.getElementById('main').innerHTML=`
     <div class="sec-hd"><div class="sec-title">⛄ Cash-flow snowball</div></div>
     <div class="detail-box" style="margin-bottom:1rem">
@@ -802,7 +870,7 @@ function renderSnowball(){
 }
 
 // ── BUDGET ─────────────────────────────────────────────────────────
-async function renderBudget(){
+window.renderBudget = async function(){
   const [debts,expenses,incomeList]=await Promise.all([getAll('debts'),getAll('expenses'),getAllIncome()]);
   const mk=monthKey();
   const mnInc=incomeList.find(i=>i.monthKey===mk);
@@ -926,7 +994,7 @@ window.delIncome=async id=>{
 };
 
 // ── SETTINGS ───────────────────────────────────────────────────────
-function renderSettings(){
+window.renderSettings = function(){
   document.getElementById('fab').style.display='none';
   document.getElementById('main').innerHTML=`
     <div class="sec-hd"><div class="sec-title">⚙️ Settings & Diagnostics</div></div>
