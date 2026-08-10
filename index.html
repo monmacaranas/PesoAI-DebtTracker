@@ -341,14 +341,30 @@ async function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   document.getElementById('hdr-sub').textContent = (profile?.name||'User') + "'s finances";
-  // Seed localStorage if empty
+  // If localStorage empty, load from Firestore first (new device)
   if (lsGet('debts').length === 0) {
-    const seeded = SEED_DEBTS.map((d,i)=>({...d, id:'sd'+i, createdAt:new Date()}));
-    lsSet('debts', seeded);
+    try {
+      const snap = await db.collection('users').doc(currentUser.uid).collection('debts').get();
+      if (!snap.empty) {
+        lsSet('debts', snap.docs.map(d=>({id:d.id,...d.data()})));
+      } else {
+        lsSet('debts', SEED_DEBTS.map((d,i)=>({...d,id:'sd'+i,createdAt:new Date()})));
+      }
+    } catch(e) {
+      lsSet('debts', SEED_DEBTS.map((d,i)=>({...d,id:'sd'+i,createdAt:new Date()})));
+    }
   }
   if (lsGet('expenses').length === 0) {
-    const seeded = SEED_EXPENSES.map((e,i)=>({...e, id:'se'+i, createdAt:new Date()}));
-    lsSet('expenses', seeded);
+    try {
+      const snap = await db.collection('users').doc(currentUser.uid).collection('expenses').get();
+      if (!snap.empty) {
+        lsSet('expenses', snap.docs.map(d=>({id:d.id,...d.data()})));
+      } else {
+        lsSet('expenses', SEED_EXPENSES.map((e,i)=>({...e,id:'se'+i,createdAt:new Date()})));
+      }
+    } catch(e) {
+      lsSet('expenses', SEED_EXPENSES.map((e,i)=>({...e,id:'se'+i,createdAt:new Date()})));
+    }
   }
   await showView('dashboard');
 }
