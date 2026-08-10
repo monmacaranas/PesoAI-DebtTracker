@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Peso AI — Debt Tracker</title><!-- v3.1 -->
 <style>
@@ -427,185 +426,115 @@ async function showView(v) {
 
 // ══ DASHBOARD ═════════════════════════════════════════════════════
 async function renderDash() {
-  const debts = await getData('debts');
-  const expenses = await getData('expenses');
-  const incomeList = await getIncomeList();
+  const uid = currentUser?.uid;
+  if (!uid) return;
+  const f = n=>(parseFloat(n)||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const nv = v=>parseFloat(v)||0;
   const now = new Date(), hr = now.getHours();
   const today = new Date(); today.setHours(0,0,0,0);
   const uname = (profile?.name||'').split(' ')[0]||'ka-utang';
 
-  function getMonthData(offset) {
-    const d = new Date(now.getFullYear(), now.getMonth()+offset, 1);
-    const ms = new Date(d.getFullYear(), d.getMonth(), 1);
-    const me = new Date(d.getFullYear(), d.getMonth()+1, 0);
-    const mk = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    const label = d.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
-    const mnInc = incomeList.find(i=>i.monthKey===mk);
-    const income = mnInc ? n(mnInc.total) : (n(profile?.totalIncome)||362000);
-    const due = debts.filter(d=>{ if(!d.nextDue)return false; const dd=new Date(d.nextDue); dd.setHours(0,0,0,0); return dd>=ms&&dd<=me; }).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
-    const totalDue = due.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-    const paid = due.filter(d=>d.paid);
-    const paidAmt = paid.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-    const cashLeft = income - totalDue;
-    return {ms,me,mk,label,income,due,totalDue,paid,paidAmt,unpaid:totalDue-paidAmt,cashLeft};
+  // Load data — localStorage first, Firestore background sync
+  let debts = lsGet('debts'), expenses = lsGet('expenses');
+  if(!debts.length || !expenses.length) {
+    try {
+      const db2 = firebase.firestore();
+      const [ds,es] = await Promise.all([
+        db2.collection('users').doc(uid).collection('debts').get(),
+        db2.collection('users').doc(uid).collection('expenses').get()
+      ]);
+      if(ds.size) { debts = ds.docs.map(d=>({id:d.id,...d.data()})); lsSet('debts',debts); }
+      if(es.size) { expenses = es.docs.map(d=>({id:d.id,...d.data()})); lsSet('expenses',expenses); }
+      else { expenses = lsGet('expenses'); }
+    } catch(e2) {}
   }
+  // Background Firestore sync
+  (async()=>{ try{ const db2=firebase.firestore();const [ds,es]=await Promise.all([db2.collection('users').doc(uid).collection('debts').get(),db2.collection('users').doc(uid).collection('expenses').get()]);if(ds.size)lsSet('debts',ds.docs.map(d=>({id:d.id,...d.data()})));if(es.size)lsSet('expenses',es.docs.map(d=>({id:d.id,...d.data()})));} catch(e2){} })();
 
-  const cm = getMonthData(0), nm = getMonthData(1);
-  const total = debts.reduce((s,d)=>s+n(d.balance),0);
-  const paidAmt = debts.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
-  const pct = total>0?(paidAmt/total*100):0;
+  const incomeList = await getIncomeList();
+  const total = debts.reduce((s,d)=>s+nv(d.balance),0);
+  const paidBal = debts.filter(d=>d.paid).reduce((s,d)=>s+nv(d.balance),0);
+  const pct = total>0?(paidBal/total*100):0;
+  const totalExpAmt = expenses.reduce((s,e)=>s+nv(e.amount),0);
 
-  // 5-category debt cards + living expenses
-  const cats = [
-    {id:1,icon:'🏠',label:'Real Estate',color:'#1E7E45'},
-    {id:2,icon:'🚗',label:'Vehicle',color:'#1565C0'},
-    {id:3,icon:'💵',label:'Cash Loans',color:'#D4870D'},
-    {id:4,icon:'💳',label:'Revolving',color:'#C0392B'},
-    {id:5,icon:'📦',label:'BNPL',color:'#7B3FA0'},
-  ];
-  const catHTML = cats.map(c=>{
-    const cd = debts.filter(d=>d.cat===c.id&&!d.paid);
-    const ct = cd.reduce((s,d)=>s+n(d.balance),0);
-    const cm2 = cd.reduce((s,d)=>s+n(d.monthlyPay||0),0);
-    if(ct===0&&cd.length===0) return '';
-    return `<div class="cat-card" style="border-left:4px solid ${c.color};cursor:pointer" onclick="setFilter('${c.id}');showView('debts')">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:18px">${c.icon}</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.label}</div></div>
-      <div style="font-size:16px;font-weight:800;color:${c.color}">₱${f(ct)}</div>
-      <div style="font-size:10px;color:var(--text-light);margin-top:2px">${cd.length} active · ₱${f(cm2)}/mo</div>
-    </div>`;
-  }).join('');
+  // Month data (no variable name conflicts)
+  const msDate = new Date(now.getFullYear(),now.getMonth(),1);
+  const meDate = new Date(now.getFullYear(),now.getMonth()+1,0);
+  const mk0 = monthKey(0), mk1 = monthKey(1);
+  const mnInc0 = incomeList.find(i=>i.monthKey===mk0);
+  const incomeAmt = mnInc0 ? nv(mnInc0.total) : (nv(profile?.totalIncome)||362000);
+  const dueList0 = debts.filter(d=>{if(!d.nextDue)return false;const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd>=msDate&&dd<=meDate;}).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
+  const totalDue0 = dueList0.reduce((s,d)=>s+nv(d.monthlyPay||0),0);
+  const paidMo0 = dueList0.filter(d=>d.paid).reduce((s,d)=>s+nv(d.monthlyPay||0),0);
+  const cashLeft0 = incomeAmt - totalDue0;
 
-  // Living expenses card
-  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
-  const expByGroup = {};
-  expenses.forEach(e=>{ expByGroup[e.category||'Other']=(expByGroup[e.category||'Other']||0)+n(e.amount); });
-  const livingHTML = `<div class="cat-card" style="border-left:4px solid #4A4A6A;cursor:pointer;grid-column:1/-1" onclick="showView('expenses')">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div style="display:flex;align-items:center;gap:6px"><span style="font-size:18px">🏡</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">Living Expenses</div></div>
-      <div style="font-size:16px;font-weight:800;color:#4A4A6A">₱${f(totalExp)}/mo</div>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">
-      ${Object.entries(expByGroup).map(([cat,amt])=>`<span style="font-size:10px;background:var(--parchment);padding:2px 8px;border-radius:99px;color:var(--text-mid)">${cat} ₱${f(amt)}</span>`).join('')}
-    </div>
-  </div>`;
+  // Next month
+  const msDate1=new Date(now.getFullYear(),now.getMonth()+1,1), meDate1=new Date(now.getFullYear(),now.getMonth()+2,0);
+  const dueList1=debts.filter(d=>{if(!d.nextDue)return false;const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd>=msDate1&&dd<=meDate1;}).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
+  const totalDue1=dueList1.reduce((s,d)=>s+nv(d.monthlyPay||0),0);
+  const cashLeft1=incomeAmt-totalDue1;
+
+  // Cat cards
+  const cats=[{id:1,icon:'🏠',label:'Real Estate',color:'#1E7E45'},{id:2,icon:'🚗',label:'Vehicle',color:'#1565C0'},{id:3,icon:'💵',label:'Cash Loans',color:'#D4870D'},{id:4,icon:'💳',label:'Revolving',color:'#C0392B'},{id:5,icon:'📦',label:'BNPL',color:'#7B3FA0'}];
+  const catHTML=cats.map(c=>{const cd=debts.filter(d=>d.cat===c.id&&!d.paid),ct=cd.reduce((s,d)=>s+nv(d.balance),0),cm2=cd.reduce((s,d)=>s+nv(d.monthlyPay||0),0);if(!ct&&!cd.length)return'';return`<div class="cat-card" style="border-left:4px solid ${c.color};cursor:pointer" onclick="setFilter('${c.id}');showView('debts')"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:18px">${c.icon}</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.label}</div></div><div style="font-size:16px;font-weight:800;color:${c.color}">₱${f(ct)}</div><div style="font-size:10px;color:var(--text-light);margin-top:2px">${cd.length} active · ₱${f(cm2)}/mo</div></div>`;}).join('');
+  const expByGroup={};expenses.forEach(e=>{expByGroup[e.category||'Other']=(expByGroup[e.category||'Other']||0)+nv(e.amount);});
+  const livingHTML=`<div class="cat-card" style="border-left:4px solid #4A4A6A;cursor:pointer;grid-column:1/-1" onclick="showView('expenses')"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:18px">🏡</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">Living Expenses</div></div><div style="font-size:16px;font-weight:800;color:#4A4A6A">₱${f(totalExpAmt)}/mo</div></div><div style="display:flex;flex-wrap:wrap;gap:6px">${Object.entries(expByGroup).map(([k,v])=>`<span style="font-size:10px;background:var(--parchment);padding:2px 8px;border-radius:99px">${k} ₱${f(v)}</span>`).join('')}</div></div>`;
 
   // Recommendations
-  const finishing = debts.filter(d=>!d.paid&&n(d.monthsLeft)>0&&n(d.monthsLeft)<=2);
-  const overdue = cm.due.filter(d=>{ if(d.paid||!d.nextDue)return false; const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd<today; });
-  let recs = [];
-  if(overdue.length>0) recs.push({color:'var(--red-light)',border:'var(--red)',title:'🔴 Overdue payments!',body:`${overdue.map(d=>d.name).join(', ')} past due. Pay immediately to avoid penalties.`});
-  if(finishing.length>0) recs.push({color:'#FFF3CD',border:'#D4870D',title:'🏁 '+finishing.length+' debt'+(finishing.length>1?'s':'')+' finishing soon',body:finishing.map(d=>d.name+' ('+d.monthsLeft+'mo)').join(', ')+'. Finish these — freed cash rolls into the next debt.'});
-  if(cm.cashLeft<0) recs.push({color:'var(--red-light)',border:'var(--red)',title:'⚠️ Payments exceed income this month',body:`₱${f(Math.abs(cm.cashLeft))} short. Contact lenders to restructure before missing payments.`});
-  else if(cm.cashLeft<50000) recs.push({color:'#FFF3CD',border:'#D4870D',title:'⚡ Tight cash flow this month',body:`Only ₱${f(cm.cashLeft)} left after debt payments. No new purchases.`});
-  recs.push({color:'#D4EDDA',border:'#1E7E45',title:'🎯 Snowball focus: pay one debt at a time',body:'Pay minimums on all, then concentrate extra cash on the debt with fewest months left. When done, roll that payment into the next one.'});
+  const overdueCt=dueList0.filter(d=>{if(d.paid||!d.nextDue)return false;const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd<today;}).length;
+  const finishing=debts.filter(d=>!d.paid&&nv(d.monthsLeft)>0&&nv(d.monthsLeft)<=2);
+  const recs=[];
+  if(overdueCt>0)recs.push({color:'var(--red-light)',border:'var(--red)',title:'🔴 Overdue payments!',body:overdueCt+' debt'+(overdueCt>1?'s':'')+' past due. Pay immediately.'});
+  if(finishing.length>0)recs.push({color:'#FFF3CD',border:'#D4870D',title:'🏁 '+finishing.length+' debt'+(finishing.length>1?'s':'')+' finishing soon',body:finishing.map(d=>d.name+'('+d.monthsLeft+'mo)').join(', ')+'. Freed cash rolls forward.'});
+  if(cashLeft0<0)recs.push({color:'var(--red-light)',border:'var(--red)',title:'⚠️ Payments exceed income',body:'₱'+f(Math.abs(cashLeft0))+' short this month.'});
+  else if(cashLeft0<50000)recs.push({color:'#FFF3CD',border:'#D4870D',title:'⚡ Tight cash flow',body:'Only ₱'+f(cashLeft0)+' left. No new purchases.'});
+  recs.push({color:'#D4EDDA',border:'#1E7E45',title:'🎯 Snowball: focus on one debt at a time',body:'Pay minimums on all, extra cash on shortest debt.'});
 
-  function dueListHTML(m, showStatus) {
-    if(m.due.length===0) return `<div style="font-size:12px;color:var(--text-light);padding:10px 0;text-align:center">No due dates set. Edit debts to add due dates.</div>`;
-    return m.due.map(d=>{
-      const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);
-      const dl=Math.ceil((dd-today)/(1000*60*60*24));
-      const past=dl<0;
-      const lbl=d.paid?'✓ Paid':past?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d';
-      const tc=d.paid?'tag-green':past?'tag-red':dl<=3?'tag-amber':'tag-blue';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px">
-        <div style="display:flex;align-items:center;gap:6px;min-width:0">
-          ${showStatus?`<span class="tag ${tc}" style="flex-shrink:0">${lbl}</span>`:''}
-          <div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
-          <div style="font-size:10px;color:var(--text-light)">${d.nextDue}</div></div>
-        </div>
-        <div style="font-size:13px;font-weight:800;color:${d.paid?'var(--green)':past?'var(--red)':'var(--text)'}">₱${f(d.monthlyPay||0)}</div>
-      </div>`;
-    }).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;font-weight:700">Total due</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span></div>`;
-  }
+  // Due list helper
+  const dueRowsHTML=(list,showBadge)=>{
+    if(!list.length)return`<div style="font-size:12px;color:var(--text-light);padding:10px 0;text-align:center">No due dates set this month.</div>`;
+    return list.map(d=>{const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);const dl=Math.ceil((dd-today)/(1000*60*60*24));const past=dl<0;const lbl=d.paid?'✓ Paid':past?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d';const tc=d.paid?'tag-green':past?'tag-red':dl<=3?'tag-amber':'tag-blue';return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px"><div style="display:flex;align-items:center;gap:6px;min-width:0">${showBadge?`<span class="tag ${tc}" style="flex-shrink:0">${lbl}</span>`:''}<div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div><div style="font-size:10px;color:var(--text-light)">${d.nextDue}</div></div></div><div style="font-size:13px;font-weight:800">₱${f(d.monthlyPay||0)}</div></div>`;}).join('')+`<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;font-weight:700">Total due</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(list.reduce((s,d)=>s+nv(d.monthlyPay||0),0))}</span></div>`;
+  };
 
-  // Living expenses monthly paid tracker (stored in localStorage per month)
-  const expMk = cm.mk; // current month key e.g. "2026-08"
-  const expPaidKey = `pesoai_${currentUser.uid}_exp_paid_${expMk}`;
-  let expPaidMap = {};
-  try { expPaidMap = JSON.parse(localStorage.getItem(expPaidKey)||'{}'); } catch(e){}
-  totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
-  const expPaidAmt = expenses.filter(e=>expPaidMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
+  // Living expense paid tracker
+  const expMkKey=`pesoai_${uid}_exp_paid_${mk0}`;
+  let expPaidMap={};try{expPaidMap=JSON.parse(localStorage.getItem(expMkKey)||'{}');}catch(e2){}
+  const expPaidAmt=expenses.filter(e=>expPaidMap[e.id]).reduce((s,e)=>s+nv(e.amount),0);
+  const expRows=expenses.map(e=>{const isPaid=!!expPaidMap[e.id];return`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;${isPaid?'opacity:.45':''}"><div style="display:flex;align-items:center;gap:8px;min-width:0"><button onclick="toggleExpPaid('${e.id}','${mk0}')" style="width:24px;height:24px;border:1.5px solid ${isPaid?'var(--green)':'var(--border)'};border-radius:50%;background:${isPaid?'var(--green-light)':'var(--cream)'};color:${isPaid?'var(--green)':'var(--text-light)'};cursor:pointer;font-size:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${isPaid?'✓':'○'}</button><div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</div><div style="font-size:10px;color:var(--text-light)">${e.dueDay||'Monthly'}</div></div></div><div style="font-size:13px;font-weight:800;color:${isPaid?'var(--green)':'var(--text-mid)'}">₱${f(e.amount)}</div></div>`;}).join('');
 
-  const expRows = expenses.map(e=>{
-    const isPaid = !!expPaidMap[e.id];
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;${isPaid?'opacity:.45':''}">
-      <div style="display:flex;align-items:center;gap:8px;min-width:0">
-        <button onclick="toggleExpPaid('${e.id}','${expMk}')" style="width:24px;height:24px;border:1.5px solid ${isPaid?'var(--green)':'var(--border)'};border-radius:50%;background:${isPaid?'var(--green-light)':'var(--cream)'};color:${isPaid?'var(--green)':'var(--text-light)'};cursor:pointer;font-size:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${isPaid?'✓':'○'}</button>
-        <div style="min-width:0">
-          <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</div>
-          <div style="font-size:10px;color:var(--text-light)">${e.dueDay||'Monthly'}</div>
-        </div>
-      </div>
-      <div style="font-size:13px;font-weight:800;color:${isPaid?'var(--green)':'var(--text-mid)'}">₱${f(e.amount)}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('main').innerHTML = `
-    <div class="greeting" style="font-size:20px;font-weight:800;margin-bottom:2px">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
+  document.getElementById('main').innerHTML=`
+    <div style="font-size:20px;font-weight:800;margin-bottom:2px">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
     <div style="font-size:13px;color:var(--text-light);margin-bottom:1.25rem">${now.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
-
     <div class="sec-hd"><div class="sec-title">📊 Overall debt</div><span class="sec-count">₱${f(total)} remaining</span></div>
-    <div class="pbar">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px"><span style="font-weight:700;color:var(--text-mid)">Payoff progress</span><span style="color:var(--text-light)">${pct.toFixed(1)}% cleared</span></div>
-      <div class="bar-bg"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
-    </div>
-
+    <div class="pbar"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px"><span style="font-weight:700;color:var(--text-mid)">Payoff progress</span><span style="color:var(--text-light)">${pct.toFixed(1)}% cleared</span></div><div class="bar-bg"><div class="bar-fill" style="width:${Math.min(pct,100).toFixed(1)}%"></div></div></div>
     <div class="cat-grid">${catHTML}${livingHTML}</div>
-
     <div class="sec-hd"><div class="sec-title">💡 Recommendations</div></div>
     ${recs.map(r=>`<div class="rec-card" style="background:${r.color};border-left:4px solid ${r.border}"><div style="font-size:13px;font-weight:800;color:${r.border};margin-bottom:4px">${r.title}</div><div style="font-size:12px;color:var(--text);line-height:1.5">${r.body}</div></div>`).join('')}
-
-    <div class="sec-hd" style="margin-top:.5rem">
-      <div class="sec-title">📅 ${cm.label}</div>
-      <button class="fpill on" style="font-size:10px" onclick="openIncomeModal()">+ Income</button>
-    </div>
+    <div class="sec-hd" style="margin-top:.5rem"><div class="sec-title">📅 ${mkLabel(mk0)}</div><button class="fpill on" style="font-size:10px" onclick="openIncomeModal()">+ Income</button></div>
     <div class="dbox" style="margin-bottom:10px">
       <div class="month-grid">
-        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">INCOME</div><div class="month-val" style="color:var(--green)">₱${f(cm.income)}</div></div>
-        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DEBT DUE</div><div class="month-val" style="color:var(--red)">₱${f(cm.totalDue)}</div></div>
-        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">PAID ✓</div><div class="month-val" style="color:var(--green)">₱${f(cm.paidAmt)}</div></div>
-        <div class="month-box" style="background:${cm.cashLeft>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">LEFT</div><div class="month-val" style="color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">${cm.cashLeft<0?'−':''}₱${f(Math.abs(cm.cashLeft))}</div></div>
+        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">INCOME</div><div class="month-val" style="color:var(--green)">₱${f(incomeAmt)}</div></div>
+        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DEBT DUE</div><div class="month-val" style="color:var(--red)">₱${f(totalDue0)}</div></div>
+        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">PAID ✓</div><div class="month-val" style="color:var(--green)">₱${f(paidMo0)}</div></div>
+        <div class="month-box" style="background:${cashLeft0>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${cashLeft0>=0?'var(--green)':'var(--red)'}">LEFT</div><div class="month-val" style="color:${cashLeft0>=0?'var(--green)':'var(--red)'}">${cashLeft0<0?'−':''}₱${f(Math.abs(cashLeft0))}</div></div>
       </div>
       <div style="font-size:11px;font-weight:700;color:var(--text-mid);margin:10px 0 6px">📋 Debt payments this month</div>
-      ${dueListHTML(cm, true)}
+      ${dueRowsHTML(dueList0,true)}
     </div>
-
     <div class="dbox" style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">🏡 Living expenses — ${cm.label}</div>
-        <div style="font-size:11px;color:var(--text-light)">₱${f(expPaidAmt)} of ₱${f(totalExp)} paid</div>
-      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:var(--text-mid)">🏡 Living expenses — ${mkLabel(mk0)}</div><div style="font-size:11px;color:${expPaidAmt>0?'var(--green)':'var(--text-light)'}">₱${f(expPaidAmt)} of ₱${f(totalExpAmt)} allocated</div></div>
       ${expRows}
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);margin-top:2px">
-        <span style="font-size:12px;font-weight:700">Total living</span>
-        <span style="font-size:13px;font-weight:800;color:var(--text-mid)">₱${f(totalExp)}</span>
-      </div>
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);margin-top:2px"><span style="font-size:12px;font-weight:700">Total living</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">₱${f(totalExpAmt)}</span></div>
     </div>
-
-    <div class="sec-hd">
-      <div class="sec-title">📅 ${nm.label}</div>
-      <span class="tag tag-blue">Upcoming</span>
-    </div>
+    <div class="sec-hd"><div class="sec-title">📅 ${mkLabel(mk1)}</div><span class="tag tag-blue">Upcoming</span></div>
     <div class="dbox" style="margin-bottom:1.25rem">
       <div class="month-grid" style="grid-template-columns:1fr 1fr 1fr">
-        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">EST. INCOME</div><div class="month-val" style="color:var(--green)">₱${f(nm.income)}</div></div>
-        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DUE</div><div class="month-val" style="color:var(--red)">₱${f(nm.totalDue)}</div></div>
-        <div class="month-box" style="background:${nm.cashLeft>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">PROJECTED LEFT</div><div class="month-val" style="color:${nm.cashLeft>=0?'var(--green)':'var(--red)'}">${nm.cashLeft<0?'−':''}₱${f(Math.abs(nm.cashLeft))}</div></div>
+        <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">EST. INCOME</div><div class="month-val" style="color:var(--green)">₱${f(incomeAmt)}</div></div>
+        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DUE</div><div class="month-val" style="color:var(--red)">₱${f(totalDue1)}</div></div>
+        <div class="month-box" style="background:${cashLeft1>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${cashLeft1>=0?'var(--green)':'var(--red)'}">PROJECTED LEFT</div><div class="month-val" style="color:${cashLeft1>=0?'var(--green)':'var(--red)'}">${cashLeft1<0?'−':''}₱${f(Math.abs(cashLeft1))}</div></div>
       </div>
-      ${dueListHTML(nm, false)}
-    </div>
-  `;
-}
-
-
-function toggleExpPaid(expId, mk) {
-  const key = `pesoai_${currentUser.uid}_exp_paid_${mk}`;
-  let map = {};
-  try { map = JSON.parse(localStorage.getItem(key)||'{}'); } catch(e){}
-  map[expId] = !map[expId];
-  localStorage.setItem(key, JSON.stringify(map));
-  // Re-render dashboard to refresh totals
-  renderDash();
+      ${dueRowsHTML(dueList1,false)}
+    </div>`;
 }
 
 // ══ DEBTS ═════════════════════════════════════════════════════════
