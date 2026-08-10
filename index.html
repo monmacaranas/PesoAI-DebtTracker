@@ -832,7 +832,7 @@ async function renderBudget() {
   const mk = monthKey(0);
   const mnInc = incomeList.find(i=>i.monthKey===mk);
   const totalIncome = mnInc ? n(mnInc.total) : (n(profile?.totalIncome)||362000);
-  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+  const totalExpenses = expenses.reduce((s,e)=>s+n(e.amount),0);
 
   // Only show debts DUE this calendar month (by nextDue date)
   const ms = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -850,7 +850,7 @@ async function renderBudget() {
   let expPaidBudgetMap = {};
   try { expPaidBudgetMap = JSON.parse(localStorage.getItem(expPaidBudgetKey)||'{}'); } catch(e){}
   const expPaidBudgetAmt = expenses.filter(e=>expPaidBudgetMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
-  const cashLeft = totalIncome - totalDebtPay - totalExp;
+  const cashLeft = totalIncome - totalDebtPay - totalExpenses;
   document.getElementById('main').innerHTML = `
     <div class="sec-hd"><div class="sec-title">💰 ${mkLabel(mk)} budget</div><button class="fpill on" onclick="openIncomeModal()">✏️ Income</button></div>
     <div class="dbox" style="margin-bottom:10px">
@@ -882,12 +882,12 @@ async function renderBudget() {
     <div class="dbox" style="margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Living expenses</div>
       ${expenses.map(e=>`<div class="brow"><span style="font-size:13px">${e.name}</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(e.amount)}</span></div>`).join('')}
-      <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total living</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalExp)}</span></div>
+      <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total living</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalExpenses)}</span></div>
     </div>
     <div class="dbox">
       <div class="brow"><span style="font-size:13px">Income</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(totalIncome)}</span></div>
       <div class="brow"><span style="font-size:13px">Debt payments (this month)</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(totalDebtPay)}</span></div>
-      <div class="brow"><span style="font-size:13px">Living expenses</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExp)}</span></div>
+      <div class="brow"><span style="font-size:13px">Living expenses</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExpenses)}</span></div>
       <div class="btotal" style="background:${cashLeft>=0?'var(--green)':'var(--red)'}">
         <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Net cash left</span>
         <span style="font-size:20px;font-weight:800;color:#fff">${cashLeft<0?'−':''}₱${f(Math.abs(cashLeft))}</span>
