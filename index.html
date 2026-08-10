@@ -263,22 +263,19 @@ function mkLabel(k){ const[y,m]=k.split('-'); return new Date(y,m-1,1).toLocaleD
 // ══ DATA — localStorage first, Firestore background sync ══════════
 function getData(name){
   return new Promise(async resolve => {
-    // Always return localStorage immediately
+    // Resolve localStorage IMMEDIATELY — instant render, no waiting
     const local = lsGet(name);
-    // Try Firestore sync in background
+    resolve(local);
+    // Sync Firestore silently in background
     try {
       const snap = await db.collection('users').doc(currentUser.uid).collection(name).get();
       if (!snap.empty) {
         const fresh = snap.docs.map(d=>({id:d.id,...d.data()}));
         lsSet(name, fresh);
-        resolve(fresh);
-        return;
       } else if (local.length > 0) {
-        // Push local to Firestore
         syncToFirestore(name, local);
       }
-    } catch(e) { /* rules not set or offline — use localStorage */ }
-    resolve(local);
+    } catch(e) {}
   });
 }
 
