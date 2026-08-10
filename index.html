@@ -505,6 +505,28 @@ async function renderDash() {
     }).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;font-weight:700">Total due</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span></div>`;
   }
 
+  // Living expenses monthly paid tracker (stored in localStorage per month)
+  const expMk = cm.mk; // current month key e.g. "2026-08"
+  const expPaidKey = `pesoai_${currentUser.uid}_exp_paid_${expMk}`;
+  let expPaidMap = {};
+  try { expPaidMap = JSON.parse(localStorage.getItem(expPaidKey)||'{}'); } catch(e){}
+  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+  const expPaidAmt = expenses.filter(e=>expPaidMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
+
+  const expRows = expenses.map(e=>{
+    const isPaid = !!expPaidMap[e.id];
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;${isPaid?'opacity:.45':''}">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0">
+        <button onclick="toggleExpPaid('${e.id}','${expMk}')" style="width:24px;height:24px;border:1.5px solid ${isPaid?'var(--green)':'var(--border)'};border-radius:50%;background:${isPaid?'var(--green-light)':'var(--cream)'};color:${isPaid?'var(--green)':'var(--text-light)'};cursor:pointer;font-size:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${isPaid?'✓':'○'}</button>
+        <div style="min-width:0">
+          <div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name}</div>
+          <div style="font-size:10px;color:var(--text-light)">${e.dueDay||'Monthly'}</div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:${isPaid?'var(--green)':'var(--text-mid)'}">₱${f(e.amount)}</div>
+    </div>`;
+  }).join('');
+
   document.getElementById('main').innerHTML = `
     <div class="greeting" style="font-size:20px;font-weight:800;margin-bottom:2px">${hr<12?'🌅':hr<17?'☀️':'🌙'} ${hr<12?'Magandang umaga':hr<18?'Magandang hapon':'Magandang gabi'}, ${uname}!</div>
     <div style="font-size:13px;color:var(--text-light);margin-bottom:1.25rem">${now.toLocaleDateString('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
@@ -527,11 +549,24 @@ async function renderDash() {
     <div class="dbox" style="margin-bottom:10px">
       <div class="month-grid">
         <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">INCOME</div><div class="month-val" style="color:var(--green)">₱${f(cm.income)}</div></div>
-        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DUE</div><div class="month-val" style="color:var(--red)">₱${f(cm.totalDue)}</div></div>
+        <div class="month-box" style="background:var(--red-light)"><div class="month-label" style="color:var(--red)">DEBT DUE</div><div class="month-val" style="color:var(--red)">₱${f(cm.totalDue)}</div></div>
         <div class="month-box" style="background:var(--green-light)"><div class="month-label" style="color:var(--green)">PAID ✓</div><div class="month-val" style="color:var(--green)">₱${f(cm.paidAmt)}</div></div>
         <div class="month-box" style="background:${cm.cashLeft>=0?'var(--green-light)':'var(--red-light)'}"><div class="month-label" style="color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">LEFT</div><div class="month-val" style="color:${cm.cashLeft>=0?'var(--green)':'var(--red)'}">${cm.cashLeft<0?'−':''}₱${f(Math.abs(cm.cashLeft))}</div></div>
       </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text-mid);margin:10px 0 6px">📋 Debt payments this month</div>
       ${dueListHTML(cm, true)}
+    </div>
+
+    <div class="dbox" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">🏡 Living expenses — ${cm.label}</div>
+        <div style="font-size:11px;color:var(--text-light)">₱${f(expPaidAmt)} of ₱${f(totalExp)} paid</div>
+      </div>
+      ${expRows}
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border);margin-top:2px">
+        <span style="font-size:12px;font-weight:700">Total living</span>
+        <span style="font-size:13px;font-weight:800;color:var(--text-mid)">₱${f(totalExp)}</span>
+      </div>
     </div>
 
     <div class="sec-hd">
@@ -551,6 +586,16 @@ async function renderDash() {
 
 var var_red_light = 'var(--red-light)';
 var var_red = 'var(--red)';
+
+function toggleExpPaid(expId, mk) {
+  const key = `pesoai_${currentUser.uid}_exp_paid_${mk}`;
+  let map = {};
+  try { map = JSON.parse(localStorage.getItem(key)||'{}'); } catch(e){}
+  map[expId] = !map[expId];
+  localStorage.setItem(key, JSON.stringify(map));
+  // Re-render dashboard to refresh totals
+  renderDash();
+}
 
 // ══ DEBTS ═════════════════════════════════════════════════════════
 async function renderDebts() {
@@ -715,26 +760,45 @@ async function viewExpense(id) {
 
 // ══ SNOWBALL ═══════════════════════════════════════════════════════
 function renderSnowball() {
+  // Built from live Firestore data — sorted shortest months first
+  // Each freed monthly payment rolls into the next debt
   const steps = [
-    {name:"CIMB Installment Loan",monthly:3958.75,months:1,freed:3958.75,roll:"→ BillEase",payoff:"Aug 2026"},
-    {name:"Salmon Cash Loan",monthly:5980,months:1,freed:5980,roll:"→ CashMart",payoff:"Aug 2026"},
-    {name:"BillEase",monthly:10867.99,months:1,freed:10867.99,roll:"→ Atome Cash Loan",payoff:"Aug 2026"},
-    {name:"CashMart",monthly:16740,months:1,freed:16740,roll:"→ JuanHand",payoff:"Aug 2026"},
-    {name:"Atome Cash Loan",monthly:10236.11,months:1,freed:10236.11,roll:"→ San Jose Koop",payoff:"Aug 2026"},
-    {name:"JuanHand Cash Loan",monthly:23574,months:1,freed:23574,roll:"→ San Jose Koop",payoff:"Aug 2026"},
-    {name:"San Jose Koop House",monthly:27000,months:2,freed:27000,roll:"→ Colinas Verdes",payoff:"Sep 2026"},
-    {name:"Colinas Verdes",monthly:63111.11,months:5,freed:63111.11,roll:"→ Xpander+Wheeltek",payoff:"Dec 2026"},
-    {name:"Wheeltek Motorcycle",monthly:722,months:9,freed:722,roll:"→ Xpander",payoff:"Apr 2027"},
-    {name:"Ggives",monthly:1360.69,months:null,freed:1360.69,roll:"→ Gcredit",payoff:"TBD"},
-    {name:"Gcredit",monthly:1360.69,months:null,freed:1360.69,roll:"→ Cebuana",payoff:"TBD"},
-    {name:"Cebuana Interest",monthly:8603.48,months:null,freed:8603.48,roll:"→ Maya Cash Loan",payoff:"TBD"},
-    {name:"Maya Cash Loan",monthly:20000,months:null,freed:20000,roll:"→ Atome Card",payoff:"TBD"},
-    {name:"Atome Card",monthly:8220.08,months:null,freed:8220.08,roll:"→ Salmon Credit",payoff:"TBD"},
-    {name:"Mitsubishi Xpander",monthly:36749,months:6,freed:36749,roll:"→ CIMB Revi",payoff:"Jan 2027"},
-    {name:"CIMB Revi",monthly:10000,months:null,freed:10000,roll:"→ Salmon Credit",payoff:"TBD"},
-    {name:"Salmon Credit",monthly:15334.82,months:null,freed:15334.82,roll:"→ Maya CC",payoff:"TBD"},
-    {name:"Maya Credit Card",monthly:30000,months:null,freed:30000,roll:"→ Anchoridge",payoff:"TBD"},
-    {name:"Anchoridge Farm Lot",monthly:40277.78,months:28,freed:40277.78,roll:"🎉 DEBT FREE!",payoff:"Nov 2028"},
+    // ── Aug 2026 one-time payments ─────────────────────────────────
+    {name:"BillEase",                    monthly:10867.99, months:1,  freed:10867.99, roll:"→ Atome Credit 25-Aug", payoff:"Aug 2026"},
+    {name:"Atome Credit — 25-Aug",       monthly:6206.67,  months:1,  freed:6206.67,  roll:"→ Lan Personal Credit", payoff:"Aug 2026"},
+    {name:"Lan Personal Credit",         monthly:15000,    months:1,  freed:15000,    roll:"→ Uloy Personal Credit", payoff:"Aug 2026"},
+    {name:"Uloy Personal Credit",        monthly:55000,    months:1,  freed:55000,    roll:"→ Gcredit",              payoff:"Aug 2026"},
+    // ── Sep 2026 one-time payments ─────────────────────────────────
+    {name:"Atome Card — Sep instalment", monthly:16926.75, months:1,  freed:16926.75, roll:"→ Atome Credit 04-Sep", payoff:"Sep 2026"},
+    {name:"Atome Credit — 04-Sep",       monthly:6615,     months:1,  freed:6615,     roll:"→ Ggives",              payoff:"Sep 2026"},
+    {name:"Ggives",                      monthly:3418.10,  months:1,  freed:3418.10,  roll:"→ Atome Credit 24-Sep", payoff:"Sep 2026"},
+    {name:"Atome Credit — 24-Sep",       monthly:10236.11, months:1,  freed:10236.11, roll:"→ Atome Credit 25-Sep", payoff:"Sep 2026"},
+    {name:"Atome Credit — 25-Sep",       monthly:6206.67,  months:1,  freed:6206.67,  roll:"→ Oct instalments",     payoff:"Sep 2026"},
+    // ── Oct 2026 one-time payments ─────────────────────────────────
+    {name:"Atome Card — Oct instalment", monthly:11600.01, months:1,  freed:11600.01, roll:"→ Atome Credit 04-Oct", payoff:"Oct 2026"},
+    {name:"Atome Credit — 04-Oct",       monthly:6615,     months:1,  freed:6615,     roll:"→ Atome Credit 24-Oct", payoff:"Oct 2026"},
+    {name:"Atome Credit — 24-Oct",       monthly:10236.11, months:1,  freed:10236.11, roll:"→ Atome Credit 25-Oct", payoff:"Oct 2026"},
+    {name:"Atome Credit — 25-Oct",       monthly:6206.66,  months:1,  freed:6206.66,  roll:"→ Nov instalments",     payoff:"Oct 2026"},
+    // ── Nov 2026 one-time payments ─────────────────────────────────
+    {name:"Atome Card — Nov instalment", monthly:3349.91,  months:1,  freed:3349.91,  roll:"→ Atome Credit 24-Nov", payoff:"Nov 2026"},
+    {name:"Atome Credit — 24-Nov",       monthly:10236.11, months:1,  freed:10236.11, roll:"→ Dec instalments",     payoff:"Nov 2026"},
+    // ── Dec 2026 one-time payments ─────────────────────────────────
+    {name:"Atome Card — Dec instalment", monthly:3349.91,  months:1,  freed:3349.91,  roll:"→ Atome Credit 24-Dec", payoff:"Dec 2026"},
+    {name:"Atome Credit — 24-Dec",       monthly:10236.12, months:1,  freed:10236.12, roll:"→ Atome Card Jan",       payoff:"Dec 2026"},
+    {name:"Atome Card — Jan instalment", monthly:3349.91,  months:1,  freed:3349.91,  roll:"→ Colinas Verdes",       payoff:"Jan 2027"},
+    // ── Multi-month debts ──────────────────────────────────────────
+    {name:"Colinas Verdes",              monthly:63111.11, months:3,  freed:63111.11, roll:"→ Gcredit",              payoff:"Nov 2026"},
+    {name:"Gcredit",                     monthly:1360.69,  months:4,  freed:1360.69,  roll:"→ Salmon Credit",        payoff:"Nov 2026"},
+    {name:"Salmon Credit",               monthly:12060,    months:6,  freed:12060,    roll:"→ Wheeltek",             payoff:"Feb 2027"},
+    {name:"Wheeltek Motorcycle",         monthly:6750,     months:7,  freed:6750,     roll:"→ Xpander",              payoff:"Mar 2027"},
+    {name:"Mitsubishi Xpander",          monthly:36749,    months:9,  freed:36749,    roll:"→ CIMB Revi",            payoff:"May 2027"},
+    {name:"CIMB Revi",                   monthly:10000,    months:10, freed:10000,    roll:"→ Maya Cash Loan",       payoff:"Jun 2027"},
+    // ── Ongoing (no stated end) ────────────────────────────────────
+    {name:"Maya Cash Loan",              monthly:20149.81, months:null,freed:20149.81, roll:"→ Maya Credit Card",    payoff:"TBD"},
+    {name:"Maya Credit Card",            monthly:52000,    months:null,freed:52000,    roll:"→ San Jose Koop",       payoff:"TBD"},
+    // ── Long-term property ─────────────────────────────────────────
+    {name:"San Jose Koop House Loan",    monthly:27000,    months:24, freed:27000,    roll:"→ Anchoridge",           payoff:"Aug 2028"},
+    {name:"Anchoridge Farm Lot",         monthly:40278,    months:40, freed:40278,    roll:"🎉 DEBT FREE!",           payoff:"Nov 2029"},
   ];
   document.getElementById('main').innerHTML = `
     <div class="sec-hd"><div class="sec-title">⛄ Cash-flow snowball</div></div>
@@ -756,7 +820,7 @@ function renderSnowball() {
       </div>`).join('')}
     <div class="dbox" style="margin-top:1rem;text-align:center;padding:1.25rem">
       <div style="font-size:28px;margin-bottom:4px">🎉</div>
-      <div style="font-size:15px;font-weight:800;color:var(--green)">DEBT FREE: NOV 2028</div>
+      <div style="font-size:15px;font-weight:800;color:var(--green)">DEBT FREE: NOV 2029</div>
       <div style="font-size:13px;color:var(--text-light);margin-top:4px">Keep going — every peso counts!</div>
     </div>`;
 }
@@ -766,12 +830,28 @@ async function renderBudget() {
   const debts = await getData('debts');
   const expenses = await getData('expenses');
   const incomeList = await getIncomeList();
+  const now = new Date();
   const mk = monthKey(0);
   const mnInc = incomeList.find(i=>i.monthKey===mk);
   const totalIncome = mnInc ? n(mnInc.total) : (n(profile?.totalIncome)||362000);
-  const knownPay = debts.filter(d=>d.monthlyPay&&!d.paid).sort((a,b)=>n(b.monthlyPay)-n(a.monthlyPay));
-  const totalDebtPay = knownPay.reduce((s,d)=>s+n(d.monthlyPay),0);
   const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+
+  // Only show debts DUE this calendar month (by nextDue date)
+  const ms = new Date(now.getFullYear(), now.getMonth(), 1);
+  const me = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  const dueThisMonth = debts.filter(d=>{
+    if(!d.nextDue) return false;
+    const dd = new Date(d.nextDue); dd.setHours(0,0,0,0);
+    return dd >= ms && dd <= me;
+  }).sort((a,b)=>new Date(a.nextDue)-new Date(b.nextDue));
+
+  const totalDebtPay = dueThisMonth.reduce((s,d)=>s+n(d.monthlyPay||0),0);
+  const paidDebt = dueThisMonth.filter(d=>d.paid).reduce((s,d)=>s+n(d.monthlyPay||0),0);
+  // Living expense paid tracker for budget month
+  const expPaidBudgetKey = `pesoai_${currentUser.uid}_exp_paid_${mk}`;
+  let expPaidBudgetMap = {};
+  try { expPaidBudgetMap = JSON.parse(localStorage.getItem(expPaidBudgetKey)||'{}'); } catch(e){}
+  const expPaidBudgetAmt = expenses.filter(e=>expPaidBudgetMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
   const cashLeft = totalIncome - totalDebtPay - totalExp;
   document.getElementById('main').innerHTML = `
     <div class="sec-hd"><div class="sec-title">💰 ${mkLabel(mk)} budget</div><button class="fpill on" onclick="openIncomeModal()">✏️ Income</button></div>
@@ -781,8 +861,24 @@ async function renderBudget() {
       ${mnInc?`<div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total income</span><span style="font-size:16px;font-weight:800;color:#fff">₱${f(totalIncome)}</span></div>`:''}
     </div>
     <div class="dbox" style="margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Debt payments</div>
-      ${knownPay.map(d=>`<div class="brow"><span style="font-size:13px">${d.name}</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(d.monthlyPay)}</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">Debt payments due this month</div>
+        <span style="font-size:11px;color:var(--text-light)">${dueThisMonth.length} bills · ₱${f(paidDebt)} paid</span>
+      </div>
+      ${dueThisMonth.length===0?`<div style="text-align:center;padding:12px;color:var(--text-light);font-size:13px">No debts due this month yet.<br>Edit debts to set next due dates.</div>`
+        :dueThisMonth.map(d=>{
+          const dd=new Date(d.nextDue);
+          const dl=Math.ceil((dd-new Date())/(1000*60*60*24));
+          const past=dl<0;
+          const badge=d.paid?'✓':''+d.nextDue.slice(8); // day number
+          return `<div class="brow" style="${d.paid?'opacity:.5':''}">
+            <div style="display:flex;align-items:center;gap:8px;min-width:0">
+              <span style="font-size:10px;font-weight:700;background:${d.paid?'var(--green-light)':past?'var(--red-light)':'var(--parchment)'};color:${d.paid?'var(--green)':past?'var(--red)':'var(--text-mid)'};padding:2px 7px;border-radius:99px;flex-shrink:0">${badge}</span>
+              <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</span>
+            </div>
+            <span style="font-size:13px;font-weight:800;color:${d.paid?'var(--green)':'var(--red)'}">−₱${f(d.monthlyPay||0)}</span>
+          </div>`;
+        }).join('')}
       <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total debt payments</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalDebtPay)}</span></div>
     </div>
     <div class="dbox" style="margin-bottom:10px">
@@ -792,7 +888,7 @@ async function renderBudget() {
     </div>
     <div class="dbox">
       <div class="brow"><span style="font-size:13px">Income</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(totalIncome)}</span></div>
-      <div class="brow"><span style="font-size:13px">Debt payments</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(totalDebtPay)}</span></div>
+      <div class="brow"><span style="font-size:13px">Debt payments (this month)</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(totalDebtPay)}</span></div>
       <div class="brow"><span style="font-size:13px">Living expenses</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExp)}</span></div>
       <div class="btotal" style="background:${cashLeft>=0?'var(--green)':'var(--red)'}">
         <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Net cash left</span>
