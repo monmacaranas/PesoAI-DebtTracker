@@ -442,7 +442,7 @@ async function renderDash() {
   const paidAmt = debts.filter(d=>d.paid).reduce((s,d)=>s+n(d.balance),0);
   const pct = total>0?(paidAmt/total*100):0;
 
-  // 5-category cards
+  // 5-category debt cards + living expenses
   const cats = [
     {id:1,icon:'🏠',label:'Real Estate',color:'#1E7E45'},
     {id:2,icon:'🚗',label:'Vehicle',color:'#1565C0'},
@@ -455,17 +455,30 @@ async function renderDash() {
     const ct = cd.reduce((s,d)=>s+n(d.balance),0);
     const cm2 = cd.reduce((s,d)=>s+n(d.monthlyPay||0),0);
     if(ct===0&&cd.length===0) return '';
-    return `<div class="cat-card" style="border-left:4px solid ${c.color}">
+    return `<div class="cat-card" style="border-left:4px solid ${c.color};cursor:pointer" onclick="setFilter('${c.id}');showView('debts')">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:18px">${c.icon}</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">${c.label}</div></div>
       <div style="font-size:16px;font-weight:800;color:${c.color}">₱${f(ct)}</div>
       <div style="font-size:10px;color:var(--text-light);margin-top:2px">${cd.length} active · ₱${f(cm2)}/mo</div>
     </div>`;
   }).join('');
 
+  // Living expenses card
+  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+  const expByGroup = {};
+  expenses.forEach(e=>{ expByGroup[e.category||'Other']=(expByGroup[e.category||'Other']||0)+n(e.amount); });
+  const livingHTML = `<div class="cat-card" style="border-left:4px solid #4A4A6A;cursor:pointer;grid-column:1/-1" onclick="showView('expenses')">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:6px"><span style="font-size:18px">🏡</span><div style="font-size:12px;font-weight:700;color:var(--text-mid)">Living Expenses</div></div>
+      <div style="font-size:16px;font-weight:800;color:#4A4A6A">₱${f(totalExp)}/mo</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${Object.entries(expByGroup).map(([cat,amt])=>`<span style="font-size:10px;background:var(--parchment);padding:2px 8px;border-radius:99px;color:var(--text-mid)">${cat} ₱${f(amt)}</span>`).join('')}
+    </div>
+  </div>`;
+
   // Recommendations
   const finishing = debts.filter(d=>!d.paid&&n(d.monthsLeft)>0&&n(d.monthsLeft)<=2);
   const overdue = cm.due.filter(d=>{ if(d.paid||!d.nextDue)return false; const dd=new Date(d.nextDue);dd.setHours(0,0,0,0);return dd<today; });
-  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
   let recs = [];
   if(overdue.length>0) recs.push({color:var_red_light,border:var_red,title:'🔴 Overdue payments!',body:`${overdue.map(d=>d.name).join(', ')} past due. Pay immediately to avoid penalties.`});
   if(finishing.length>0) recs.push({color:'#FFF3CD',border:'#D4870D',title:'🏁 '+finishing.length+' debt'+(finishing.length>1?'s':'')+' finishing soon',body:finishing.map(d=>d.name+' ('+d.monthsLeft+'mo)').join(', ')+'. Finish these — freed cash rolls into the next debt.'});
@@ -502,7 +515,7 @@ async function renderDash() {
       <div class="bar-bg"><div class="bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
     </div>
 
-    <div class="cat-grid">${catHTML}</div>
+    <div class="cat-grid">${catHTML}${livingHTML}</div>
 
     <div class="sec-hd"><div class="sec-title">💡 Recommendations</div></div>
     ${recs.map(r=>`<div class="rec-card" style="background:${r.color};border-left:4px solid ${r.border}"><div style="font-size:13px;font-weight:800;color:${r.border};margin-bottom:4px">${r.title}</div><div style="font-size:12px;color:var(--text);line-height:1.5">${r.body}</div></div>`).join('')}
