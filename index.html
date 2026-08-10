@@ -209,10 +209,10 @@ const db   = firebase.firestore();
 
 // ══ SEED DATA ═════════════════════════════════════════════════════
 const SEED_DEBTS = [
-  {cat:1,name:"Anchoridge Farm Lot",balance:40277.78,monthlyPay:40277.78,monthsLeft:28,dueDay:"6th of month",nextDue:"2026-08-06",rate:"TBD",phase:4,action:"Keep current — asset",notes:"Block 1 Lots 1-4. Total ₱362,500.",paid:false},
-  {cat:1,name:"Colinas Verdes",balance:63111.11,monthlyPay:63111.11,monthsLeft:5,dueDay:"7th of month",nextDue:"2026-08-07",rate:"TBD",phase:1,action:"CRITICAL — highest monthly hit",notes:"₱63,111/mo 2026, rises to ₱73,500 in 2027-2028.",paid:false},
-  {cat:1,name:"San Jose Koop House Loan",balance:26953,monthlyPay:27000,monthsLeft:2,dueDay:"24th of month",nextDue:"2026-08-24",rate:"TBD",phase:1,action:"PAY OFF — 2 months left!",notes:"Ends ~Aug 2026.",paid:false},
-  {cat:2,name:"Mitsubishi Xpander Auto Loan",balance:36749,monthlyPay:36749,monthsLeft:6,dueDay:"25th of month",nextDue:"2026-08-25",rate:"TBD",phase:2,action:"Keep current — car",notes:"₱36,749/mo through end 2026.",paid:false},
+  {cat:1,name:"Anchoridge Farm Lot (Block 1 Lot 1-2-3-4)",balance:40277.78,monthlyPay:40277.78,monthsLeft:28,dueDay:"7th of month",nextDue:"2026-09-07",rate:"TBD",phase:4,action:"Keep current — real estate asset",notes:"Paid Jan 2024–Aug 2026. Sep 2026 onwards outstanding. Due every 7th.",paid:false,secured:true},
+  {cat:1,name:"Colinas Verdes",balance:63111.11,monthlyPay:63111.11,monthsLeft:28,dueDay:"7th of month",nextDue:"2026-08-07",rate:"TBD",phase:1,action:"CRITICAL — highest monthly obligation",notes:"Paid Mar–Jul 2026. Aug 2026 outstanding. ₱63,111/mo in 2026, rises to ₱73,500/mo in 2027–2028. Due every 7th.",paid:false,secured:true},
+  {cat:1,name:"San Jose Koop House Loan",balance:26953,monthlyPay:26953,monthsLeft:24,dueDay:"7th of month",nextDue:"2026-08-07",rate:"TBD",phase:4,action:"Keep current — house loan",notes:"Paid Mar–May 2026. Jun 2026 onwards outstanding. Due every 7th.",paid:false,secured:true},
+  {cat:2,name:"Mitsubishi Xpander Auto Loan",balance:36749,monthlyPay:36749,monthsLeft:12,dueDay:"7th of month",nextDue:"2026-08-07",rate:"TBD",phase:3,action:"Keep current — car loan, ends Jul 2027",notes:"Paid Jun 2024–Jul 2026. Aug 2026 onwards outstanding. Due every 7th.",paid:false,secured:true},
   {cat:2,name:"Wheeltek Motorcycle Loan",balance:6500,monthlyPay:722,monthsLeft:9,dueDay:"18th of month",nextDue:"2026-08-18",rate:"TBD",phase:2,action:"Keep current — asset",notes:"₱722/mo. 9 months left.",paid:false},
   {cat:3,name:"JuanHand Cash Loan",balance:23574,monthlyPay:23574,monthsLeft:1,dueDay:"25th of month",nextDue:"2026-08-25",rate:"HIGH",phase:1,action:"PAY OFF — 1 month left!",notes:"Confirm settlement with lender.",paid:false},
   {cat:3,name:"CashMart",balance:16740,monthlyPay:16740,monthsLeft:1,dueDay:"11th & 25th",nextDue:"2026-08-11",rate:"HIGH",phase:1,action:"PAY OFF — final payment",notes:"Split over 2 due dates.",paid:false},
