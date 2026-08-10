@@ -510,7 +510,7 @@ async function renderDash() {
   const expPaidKey = `pesoai_${currentUser.uid}_exp_paid_${expMk}`;
   let expPaidMap = {};
   try { expPaidMap = JSON.parse(localStorage.getItem(expPaidKey)||'{}'); } catch(e){}
-  const totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
+  totalExp = expenses.reduce((s,e)=>s+n(e.amount),0);
   const expPaidAmt = expenses.filter(e=>expPaidMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
 
   const expRows = expenses.map(e=>{
