@@ -8,7 +8,7 @@
 :root{--navy:#1A2744;--gold:#C8873A;--red:#C0392B;--red-light:#FDECEA;--green:#1E7E45;--green-light:#D4EDDA;--amber:#D4870D;--amber-light:#FFF3CD;--blue:#1565C0;--blue-light:#E3F2FD;--cream:#F8F5F0;--parchment:#EEE8DC;--white:#FFFFFF;--text:#1A1A2E;--text-mid:#4A4A6A;--text-light:#8A8AAA;--border:rgba(26,39,68,0.12);--shadow:0 2px 12px rgba(26,39,68,0.10);--radius:16px;--rsm:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto}
-/* AUTH */h
+/* AUTH */
 #auth-screen{min-height:100vh;background:linear-gradient(160deg,#1A2744 0%,#243158 60%,#2D4A8A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
 .auth-logo{font-size:64px;margin-bottom:.5rem;text-align:center}
 .auth-title{font-size:30px;font-weight:800;color:#fff;letter-spacing:-.5px;text-align:center}
@@ -482,7 +482,7 @@ async function renderDash() {
   let recs = [];
   if(overdue.length>0) recs.push({color:'var(--red-light)',border:'var(--red)',title:'🔴 Overdue payments!',body:`${overdue.map(d=>d.name).join(', ')} past due. Pay immediately to avoid penalties.`});
   if(finishing.length>0) recs.push({color:'#FFF3CD',border:'#D4870D',title:'🏁 '+finishing.length+' debt'+(finishing.length>1?'s':'')+' finishing soon',body:finishing.map(d=>d.name+' ('+d.monthsLeft+'mo)').join(', ')+'. Finish these — freed cash rolls into the next debt.'});
-  if(cm.cashLeft<0) recs.push({color:var_red_light,border:var_red,title:'⚠️ Payments exceed income this month',body:`₱${f(Math.abs(cm.cashLeft))} short. Contact lenders to restructure before missing payments.`});
+  if(cm.cashLeft<0) recs.push({color:'var(--red-light)',border:'var(--red)',title:'⚠️ Payments exceed income this month',body:`₱${f(Math.abs(cm.cashLeft))} short. Contact lenders to restructure before missing payments.`});
   else if(cm.cashLeft<50000) recs.push({color:'#FFF3CD',border:'#D4870D',title:'⚡ Tight cash flow this month',body:`Only ₱${f(cm.cashLeft)} left after debt payments. No new purchases.`});
   recs.push({color:'#D4EDDA',border:'#1E7E45',title:'🎯 Snowball focus: pay one debt at a time',body:'Pay minimums on all, then concentrate extra cash on the debt with fewest months left. When done, roll that payment into the next one.'});
 
@@ -583,6 +583,7 @@ async function renderDash() {
     </div>
   `;
 }
+
 
 function toggleExpPaid(expId, mk) {
   const key = `pesoai_${currentUser.uid}_exp_paid_${mk}`;
