@@ -498,7 +498,10 @@ async function renderDash() {
           <div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
           <div style="font-size:10px;color:var(--text-light)">${d.nextDue}</div></div>
         </div>
-        <div style="font-size:13px;font-weight:800;color:${d.paid?'var(--green)':past?'var(--red)':'var(--text)'}">₱${f(d.monthlyPay||0)}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <div style="font-size:13px;font-weight:800;color:${d.paid?'var(--green)':past?'var(--red)':'var(--text)'}">₱${f(d.monthlyPay||0)}</div>
+          ${showStatus?`<button class="ptoggle${d.paid?' done':''}" onclick="togglePaid('${d.id}',${!!d.paid},event)">✓</button>`:''}
+        </div>
       </div>`;
     }).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;font-weight:700">Total due</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span></div>`;
   }
@@ -671,10 +674,15 @@ function setFilter(flt) { activeFilter=flt; renderDebts(); }
 function setSort(srt) { activeSort=srt; renderDebts(); }
 
 async function togglePaid(id, curr, e) {
-  e.stopPropagation();
-  await updateItem('debts', id, {paid:!curr});
+  if(e) e.stopPropagation();
+  const newPaid = !curr;
+  // Update localStorage immediately
+  const local = lsGet('debts').map(d=>d.id===id?{...d,paid:newPaid}:d);
+  lsSet('debts', local);
+  // Sync to Firestore for cross-device
+  try { await db.collection('users').doc(currentUser.uid).collection('debts').doc(id).update({paid:newPaid}); } catch(e2){}
   toast(curr?'↩️ Marked outstanding':'✅ Marked paid!');
-  renderDebts();
+  if(activeView==='debts') await renderDebts(); else await renderDash();
 }
 
 // ══ DEBT DETAIL ════════════════════════════════════════════════════
