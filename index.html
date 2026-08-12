@@ -507,7 +507,8 @@ async function renderDash() {
   }
 
   // Living expenses monthly paid tracker (stored in localStorage per month)
-  const expMk = cm.mk; // current month key e.g. "2026-08"
+  const expMk = cm.mk;
+  await loadExpPaid(expMk);
   const expPaidKey = `pesoai_${currentUser.uid}_exp_paid_${expMk}`;
   let expPaidMap = {};
   try { expPaidMap = JSON.parse(localStorage.getItem(expPaidKey)||'{}'); } catch(e){}
@@ -871,6 +872,7 @@ async function renderBudget() {
   const paidDebt = dueThisMonth.filter(d=>d.paid).reduce((s,d)=>s+n(d.monthlyPay||0),0);
   // Living expense paid tracker for budget month
   const expPaidBudgetKey = `pesoai_${currentUser.uid}_exp_paid_${mk}`;
+  await loadExpPaid(mk);
   let expPaidBudgetMap = {};
   try { expPaidBudgetMap = JSON.parse(localStorage.getItem(expPaidBudgetKey)||'{}'); } catch(e){}
   const expPaidBudgetAmt = expenses.filter(e=>expPaidBudgetMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
