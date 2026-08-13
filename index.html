@@ -492,7 +492,7 @@ async function renderDash() {
       const past=dl<0;
       const lbl=d.paid?'✓ Paid':past?Math.abs(dl)+'d overdue':dl===0?'Today':dl+'d';
       const tc=d.paid?'tag-green':past?'tag-red':dl<=3?'tag-amber':'tag-blue';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px">
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:8px;${d.paid?'opacity:.55':''}">
         <div style="display:flex;align-items:center;gap:6px;min-width:0">
           ${showStatus?`<span class="tag ${tc}" style="flex-shrink:0">${lbl}</span>`:''}
           <div style="min-width:0"><div style="font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.name}</div>
@@ -506,12 +506,9 @@ async function renderDash() {
     }).join('') + `<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;font-weight:700">Total due</span><span style="font-size:14px;font-weight:800;color:var(--red)">₱${f(m.totalDue)}</span></div>`;
   }
 
-  // Living expenses monthly paid tracker (stored in localStorage per month)
+  // Load expPaid FROM Firestore (source of truth)
   const expMk = cm.mk;
-  await loadExpPaid(expMk);
-  const expPaidKey = `pesoai_${currentUser.uid}_exp_paid_${expMk}`;
-  let expPaidMap = {};
-  try { expPaidMap = JSON.parse(localStorage.getItem(expPaidKey)||'{}'); } catch(e){}
+  const expPaidMap = await loadExpPaid(expMk);
   const expPaidAmt = expenses.filter(e=>expPaidMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
 
   const expRows = expenses.map(e=>{
@@ -593,26 +590,32 @@ function toggleExpPaid(expId, mk) {
   let map = {};
   try { map = JSON.parse(localStorage.getItem(key)||'{}'); } catch(e){}
   map[expId] = !map[expId];
-  // Save to localStorage immediately
+  // Save to localStorage immediately for instant UI
   localStorage.setItem(key, JSON.stringify(map));
-  // Save to Firestore for cross-device sync
-  db.collection('users').doc(uid).collection('expPaid').doc(mk).set(map, {merge:true})
-    .catch(e=>console.warn('Firestore expPaid save failed:',e.message));
-  // Re-render active view
-  const onBudget = document.getElementById('nav-budget')?.classList.contains('active');
-  if (onBudget) renderBudget(); else renderDash();
+  // Save to Firestore — this is the source of truth for cross-device sync
+  db.collection('users').doc(uid).collection('expPaid').doc(mk)
+    .set(map, {merge: false})  // overwrite whole doc so it's clean
+    .then(() => console.log('expPaid saved to Firestore'))
+    .catch(e => console.warn('Firestore expPaid save failed:', e.message));
+  // Re-render whichever view is active
+  if (activeView === 'budget') renderBudget(); else renderDash();
 }
 
 async function loadExpPaid(mk) {
   const uid = currentUser?.uid;
-  if (!uid) return;
+  if (!uid) return {};
   const key = `pesoai_${uid}_exp_paid_${mk}`;
   try {
     const snap = await db.collection('users').doc(uid).collection('expPaid').doc(mk).get();
     if (snap.exists) {
-      localStorage.setItem(key, JSON.stringify(snap.data()));
+      const data = snap.data();
+      // Firestore is source of truth — overwrite localStorage
+      localStorage.setItem(key, JSON.stringify(data));
+      return data;
     }
-  } catch(e) { /* use localStorage fallback */ }
+  } catch(e) { /* offline — fall through to localStorage */ }
+  // Fallback to localStorage
+  try { return JSON.parse(localStorage.getItem(key)||'{}'); } catch(e) { return {}; }
 }
 
 // ══ DEBTS ═════════════════════════════════════════════════════════
@@ -677,13 +680,17 @@ function setSort(srt) { activeSort=srt; renderDebts(); }
 async function togglePaid(id, curr, e) {
   if(e) e.stopPropagation();
   const newPaid = !curr;
-  // Update localStorage immediately
+  // Save to localStorage immediately
   const local = lsGet('debts').map(d=>d.id===id?{...d,paid:newPaid}:d);
   lsSet('debts', local);
-  // Sync to Firestore for cross-device
-  try { await db.collection('users').doc(currentUser.uid).collection('debts').doc(id).update({paid:newPaid}); } catch(e2){}
+  // Save to Firestore for cross-device sync
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('debts').doc(id).update({paid:newPaid});
+  } catch(e2) { console.warn('Firestore togglePaid failed:',e2.message); }
   toast(curr?'↩️ Marked outstanding':'✅ Marked paid!');
-  if(activeView==='debts') await renderDebts(); else await renderDash();
+  // Re-render whichever view is active
+  if(activeView==='debts') await renderDebts();
+  else await renderDash();
 }
 
 // ══ DEBT DETAIL ════════════════════════════════════════════════════
@@ -871,10 +878,8 @@ async function renderBudget() {
   const totalDebtPay = dueThisMonth.reduce((s,d)=>s+n(d.monthlyPay||0),0);
   const paidDebt = dueThisMonth.filter(d=>d.paid).reduce((s,d)=>s+n(d.monthlyPay||0),0);
   // Living expense paid tracker for budget month
-  const expPaidBudgetKey = `pesoai_${currentUser.uid}_exp_paid_${mk}`;
-  await loadExpPaid(mk);
-  let expPaidBudgetMap = {};
-  try { expPaidBudgetMap = JSON.parse(localStorage.getItem(expPaidBudgetKey)||'{}'); } catch(e){}
+  // Load expPaid FROM Firestore (source of truth)
+  const expPaidBudgetMap = await loadExpPaid(mk);
   const expPaidBudgetAmt = expenses.filter(e=>expPaidBudgetMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
   const cashLeft = totalIncome - totalDebtPay - totalExp;
   document.getElementById('main').innerHTML = `
@@ -906,14 +911,18 @@ async function renderBudget() {
       <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total debt payments</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalDebtPay)}</span></div>
     </div>
     <div class="dbox" style="margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px">Living expenses</div>
-      ${expenses.map(e=>`<div class="brow"><span style="font-size:13px">${e.name}</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(e.amount)}</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:var(--text-mid)">Living expenses</div>
+        <span style="font-size:11px;color:${expPaidBudgetAmt>0?'var(--green)':'var(--text-light)'}">₱${f(expPaidBudgetAmt)} of ₱${f(totalExp)} allocated</span>
+      </div>
+      ${expenses.map(e=>{const isPaid=!!expPaidBudgetMap[e.id];return`<div class="brow" style="${isPaid?'opacity:.55':''}"><div style="display:flex;align-items:center;gap:8px;min-width:0"><button onclick="toggleExpPaid('${e.id}','${mk}')" style="width:22px;height:22px;border:1.5px solid ${isPaid?'var(--green)':'var(--border)'};border-radius:50%;background:${isPaid?'var(--green-light)':'var(--cream)'};color:${isPaid?'var(--green)':'var(--text-light)'};cursor:pointer;font-size:10px;flex-shrink:0">${isPaid?'✓':'○'}</button><span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name} <span style="font-size:10px;color:var(--text-light)">${e.dueDay||''}</span></span></div><span style="font-size:13px;font-weight:800;color:${isPaid?'var(--green)':'var(--text-mid)'}">−₱${f(e.amount)}</span></div>`;}).join('')}
       <div class="btotal"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.8)">Total living</span><span style="font-size:16px;font-weight:800;color:#fff">−₱${f(totalExp)}</span></div>
     </div>
     <div class="dbox">
       <div class="brow"><span style="font-size:13px">Income</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(totalIncome)}</span></div>
       <div class="brow"><span style="font-size:13px">Debt payments (this month)</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(totalDebtPay)}</span></div>
       <div class="brow"><span style="font-size:13px">Living expenses</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExp)}</span></div>
+      <div class="brow"><span style="font-size:13px">Living allocated ✓</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(expPaidBudgetAmt)}</span></div>
       <div class="btotal" style="background:${cashLeft>=0?'var(--green)':'var(--red)'}">
         <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Net cash left</span>
         <span style="font-size:20px;font-weight:800;color:#fff">${cashLeft<0?'−':''}₱${f(Math.abs(cashLeft))}</span>
