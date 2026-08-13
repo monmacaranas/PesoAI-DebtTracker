@@ -405,7 +405,7 @@ async function showView(v) {
   if      (v==='dashboard') await renderDash();
   else if (v==='debts')     await renderDebts();
   else if (v==='expenses')  await renderExpenses();
-  else if (v==='snowball')  renderSnowball();
+  else if (v==='snowball')  await renderSnowball();
   else if (v==='budget')    await renderBudget();
   else if (v==='settings')  renderSettings();
 }
@@ -789,69 +789,68 @@ async function viewExpense(id) {
 }
 
 // ══ SNOWBALL ═══════════════════════════════════════════════════════
-function renderSnowball() {
-  // Built from live Firestore data — sorted shortest months first
-  // Each freed monthly payment rolls into the next debt
-  const steps = [
-    // ── Aug 2026 one-time payments ─────────────────────────────────
-    {name:"BillEase",                    monthly:10867.99, months:1,  freed:10867.99, roll:"→ Atome Credit 25-Aug", payoff:"Aug 2026"},
-    {name:"Atome Credit — 25-Aug",       monthly:6206.67,  months:1,  freed:6206.67,  roll:"→ Lan Personal Credit", payoff:"Aug 2026"},
-    {name:"Lan Personal Credit",         monthly:15000,    months:1,  freed:15000,    roll:"→ Uloy Personal Credit", payoff:"Aug 2026"},
-    {name:"Uloy Personal Credit",        monthly:55000,    months:1,  freed:55000,    roll:"→ Gcredit",              payoff:"Aug 2026"},
-    // ── Sep 2026 one-time payments ─────────────────────────────────
-    {name:"Atome Card — Sep instalment", monthly:16926.75, months:1,  freed:16926.75, roll:"→ Atome Credit 04-Sep", payoff:"Sep 2026"},
-    {name:"Atome Credit — 04-Sep",       monthly:6615,     months:1,  freed:6615,     roll:"→ Ggives",              payoff:"Sep 2026"},
-    {name:"Ggives",                      monthly:3418.10,  months:1,  freed:3418.10,  roll:"→ Atome Credit 24-Sep", payoff:"Sep 2026"},
-    {name:"Atome Credit — 24-Sep",       monthly:10236.11, months:1,  freed:10236.11, roll:"→ Atome Credit 25-Sep", payoff:"Sep 2026"},
-    {name:"Atome Credit — 25-Sep",       monthly:6206.67,  months:1,  freed:6206.67,  roll:"→ Oct instalments",     payoff:"Sep 2026"},
-    // ── Oct 2026 one-time payments ─────────────────────────────────
-    {name:"Atome Card — Oct instalment", monthly:11600.01, months:1,  freed:11600.01, roll:"→ Atome Credit 04-Oct", payoff:"Oct 2026"},
-    {name:"Atome Credit — 04-Oct",       monthly:6615,     months:1,  freed:6615,     roll:"→ Atome Credit 24-Oct", payoff:"Oct 2026"},
-    {name:"Atome Credit — 24-Oct",       monthly:10236.11, months:1,  freed:10236.11, roll:"→ Atome Credit 25-Oct", payoff:"Oct 2026"},
-    {name:"Atome Credit — 25-Oct",       monthly:6206.66,  months:1,  freed:6206.66,  roll:"→ Nov instalments",     payoff:"Oct 2026"},
-    // ── Nov 2026 one-time payments ─────────────────────────────────
-    {name:"Atome Card — Nov instalment", monthly:3349.91,  months:1,  freed:3349.91,  roll:"→ Atome Credit 24-Nov", payoff:"Nov 2026"},
-    {name:"Atome Credit — 24-Nov",       monthly:10236.11, months:1,  freed:10236.11, roll:"→ Dec instalments",     payoff:"Nov 2026"},
-    // ── Dec 2026 one-time payments ─────────────────────────────────
-    {name:"Atome Card — Dec instalment", monthly:3349.91,  months:1,  freed:3349.91,  roll:"→ Atome Credit 24-Dec", payoff:"Dec 2026"},
-    {name:"Atome Credit — 24-Dec",       monthly:10236.12, months:1,  freed:10236.12, roll:"→ Atome Card Jan",       payoff:"Dec 2026"},
-    {name:"Atome Card — Jan instalment", monthly:3349.91,  months:1,  freed:3349.91,  roll:"→ Colinas Verdes",       payoff:"Jan 2027"},
-    // ── Multi-month debts ──────────────────────────────────────────
-    {name:"Colinas Verdes",              monthly:63111.11, months:3,  freed:63111.11, roll:"→ Gcredit",              payoff:"Nov 2026"},
-    {name:"Gcredit",                     monthly:1360.69,  months:4,  freed:1360.69,  roll:"→ Salmon Credit",        payoff:"Nov 2026"},
-    {name:"Salmon Credit",               monthly:12060,    months:6,  freed:12060,    roll:"→ Wheeltek",             payoff:"Feb 2027"},
-    {name:"Wheeltek Motorcycle",         monthly:6750,     months:7,  freed:6750,     roll:"→ Xpander",              payoff:"Mar 2027"},
-    {name:"Mitsubishi Xpander",          monthly:36749,    months:9,  freed:36749,    roll:"→ CIMB Revi",            payoff:"May 2027"},
-    {name:"CIMB Revi",                   monthly:10000,    months:10, freed:10000,    roll:"→ Maya Cash Loan",       payoff:"Jun 2027"},
-    // ── Ongoing (no stated end) ────────────────────────────────────
-    {name:"Maya Cash Loan",              monthly:20149.81, months:null,freed:20149.81, roll:"→ Maya Credit Card",    payoff:"TBD"},
-    {name:"Maya Credit Card",            monthly:52000,    months:null,freed:52000,    roll:"→ San Jose Koop",       payoff:"TBD"},
-    // ── Long-term property ─────────────────────────────────────────
-    {name:"San Jose Koop House Loan",    monthly:27000,    months:24, freed:27000,    roll:"→ Anchoridge",           payoff:"Aug 2028"},
-    {name:"Anchoridge Farm Lot",         monthly:40278,    months:40, freed:40278,    roll:"🎉 DEBT FREE!",           payoff:"Nov 2029"},
-  ];
+async function renderSnowball() {
+  const allDebts = await getData('debts');
+  const unpaid = allDebts.filter(d=>!d.paid);
+  const nv = v=>parseFloat(v)||0;
+  const f = n=>(parseFloat(n)||0).toLocaleString('en-PH',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+  // Sort by nextDue date first, then by monthsLeft (fewest first), ongoing last
+  const sorted = [...unpaid].sort((a,b)=>{
+    const am = a.monthsLeft != null ? a.monthsLeft : 9999;
+    const bm = b.monthsLeft != null ? b.monthsLeft : 9999;
+    if (am !== bm) return am - bm;
+    const ad = a.nextDue ? new Date(a.nextDue) : new Date('9999-12-31');
+    const bd = b.nextDue ? new Date(b.nextDue) : new Date('9999-12-31');
+    return ad - bd;
+  });
+
+  function fmtMonth(d) {
+    return new Date(d).toLocaleDateString('en-PH',{month:'short',year:'numeric'});
+  }
+
+  // Calculate payoff month based on nextDue + monthsLeft
+  let freedSoFar = 0;
+  const steps = sorted.map((d, i) => {
+    const monthly = nv(d.monthlyPay||d.balance||0);
+    const months = d.monthsLeft != null ? d.monthsLeft : null;
+    let payoff = 'Ongoing';
+    if (months && d.nextDue) {
+      const pd = new Date(d.nextDue);
+      pd.setMonth(pd.getMonth() + Math.max(0, months - 1));
+      payoff = fmtMonth(pd);
+    }
+    const next = sorted[i+1];
+    const roll = next ? `→ ${next.name}` : '🎉 DEBT FREE!';
+    freedSoFar += monthly;
+    return { name: d.name, monthly, months, payoff, freed: freedSoFar, roll };
+  });
+
+  const lastDated = [...steps].reverse().find(s=>s.payoff !== 'Ongoing');
+  const debtFreeLabel = lastDated ? lastDated.payoff.toUpperCase() : 'TBD';
+
   document.getElementById('main').innerHTML = `
-    <div class="sec-hd"><div class="sec-title">⛄ Cash-flow snowball</div></div>
-    <div class="dbox" style="margin-bottom:1rem"><div style="font-size:13px;color:var(--text-mid);line-height:1.6">Finish shortest debts first. Each freed monthly payment <strong>rolls into the next debt</strong> — building momentum to Nov 2028.</div></div>
+    <div class="sec-hd"><div class="sec-title">⛄ Cash-flow snowball</div><span class="sec-count">${steps.length} steps</span></div>
+    <div class="dbox" style="margin-bottom:1rem"><div style="font-size:13px;color:var(--text-mid);line-height:1.6">Finish shortest/soonest debts first. Each freed monthly payment <strong>rolls into the next debt</strong> — building momentum to freedom.</div></div>
     ${steps.map((s,i)=>`
       <div class="sb">
         <div style="display:flex;flex-direction:column;align-items:center">
-          <div class="sb-dot${s.payoff!=='TBD'?' done':''}">${i+1}</div>
+          <div class="sb-dot${s.payoff!=='Ongoing'?' done':''}">${i+1}</div>
           ${i<steps.length-1?'<div class="sb-line"></div>':''}
         </div>
         <div class="sb-body">
-          <div style="display:flex;justify-content:space-between;gap:8px">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">
             <div style="font-size:13px;font-weight:700">${s.name}</div>
-            <div style="font-size:10px;color:var(--text-light);flex-shrink:0">${s.payoff}</div>
+            <div style="font-size:10px;color:var(--text-light);flex-shrink:0;background:var(--parchment);padding:1px 6px;border-radius:99px">${s.payoff}</div>
           </div>
-          <div style="font-size:11px;color:var(--text-light);margin-top:2px">₱${f(s.monthly||0)}/mo${s.months?' · '+s.months+'mo':''}</div>
-          <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:3px">Frees ₱${f(s.freed||0)}/mo ${s.roll}</div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:2px">₱${f(s.monthly)}/mo${s.months?' · '+s.months+'mo left':' · ongoing'}</div>
+          <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:3px">Frees ₱${f(s.freed)}/mo ${s.roll}</div>
         </div>
       </div>`).join('')}
     <div class="dbox" style="margin-top:1rem;text-align:center;padding:1.25rem">
       <div style="font-size:28px;margin-bottom:4px">🎉</div>
-      <div style="font-size:15px;font-weight:800;color:var(--green)">DEBT FREE: NOV 2029</div>
-      <div style="font-size:13px;color:var(--text-light);margin-top:4px">Keep going — every peso counts!</div>
+      <div style="font-size:15px;font-weight:800;color:var(--green)">ESTIMATED DEBT FREE: ${debtFreeLabel}</div>
+      <div style="font-size:13px;color:var(--text-light);margin-top:4px">${steps.length} payments · every peso freed rolls forward</div>
     </div>`;
 }
 
