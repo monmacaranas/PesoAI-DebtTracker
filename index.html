@@ -881,7 +881,8 @@ async function renderBudget() {
   // Load expPaid FROM Firestore (source of truth)
   const expPaidBudgetMap = await loadExpPaid(mk);
   const expPaidBudgetAmt = expenses.filter(e=>expPaidBudgetMap[e.id]).reduce((s,e)=>s+n(e.amount),0);
-  const cashLeft = totalIncome - totalDebtPay - totalExp;
+  const expUnallocated = totalExp - expPaidBudgetAmt; // only deduct what hasn't been allocated yet
+  const cashLeft = totalIncome - totalDebtPay - expUnallocated;
   document.getElementById('main').innerHTML = `
     <div class="sec-hd"><div class="sec-title">💰 ${mkLabel(mk)} budget</div><button class="fpill on" onclick="openIncomeModal()">✏️ Income</button></div>
     <div class="dbox" style="margin-bottom:10px">
@@ -921,14 +922,16 @@ async function renderBudget() {
     <div class="dbox">
       <div class="brow"><span style="font-size:13px">Income</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(totalIncome)}</span></div>
       <div class="brow"><span style="font-size:13px">Debt payments (this month)</span><span style="font-size:13px;font-weight:800;color:var(--red)">−₱${f(totalDebtPay)}</span></div>
-      <div class="brow"><span style="font-size:13px">Living expenses</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExp)}</span></div>
+      <div class="brow"><span style="font-size:13px">Living expenses (total)</span><span style="font-size:13px;font-weight:800;color:var(--text-mid)">−₱${f(totalExp)}</span></div>
       <div class="brow"><span style="font-size:13px">Living allocated ✓</span><span style="font-size:13px;font-weight:800;color:var(--green)">₱${f(expPaidBudgetAmt)}</span></div>
+      <div class="brow"><span style="font-size:13px">Living unallocated</span><span style="font-size:13px;font-weight:800;color:${expUnallocated>0?'var(--red)':'var(--text-light)'}">−₱${f(expUnallocated)}</span></div>
       <div class="btotal" style="background:${cashLeft>=0?'var(--green)':'var(--red)'}">
         <span style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8)">Net cash left</span>
         <span style="font-size:20px;font-weight:800;color:#fff">${cashLeft<0?'−':''}₱${f(Math.abs(cashLeft))}</span>
       </div>
       <div style="font-size:12px;margin-top:10px;${cashLeft<0?'color:var(--red);font-weight:700':'color:var(--green)'}">
-        ${cashLeft<0?`⚠️ ₱${f(Math.abs(cashLeft))} short. Review and restructure debts.`:`✅ ₱${f(cashLeft)} available for savings or debt acceleration.`}
+        ${cashLeft<0?`⚠️ ₱${f(Math.abs(cashLeft))} short. Review and restructure debts.`:`✅ ₱${f(cashLeft)} available after all obligations.`}
+        ${expUnallocated>0?`<br><span style="color:var(--amber);font-size:11px">⚡ ₱${f(expUnallocated)} living expenses still unallocated.</span>`:''}
       </div>
     </div>`;
 }
