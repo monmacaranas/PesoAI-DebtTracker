@@ -263,29 +263,33 @@ function mkLabel(k){ const[y,m]=k.split('-'); return new Date(y,m-1,1).toLocaleD
 // ══ DATA — localStorage first, Firestore background sync ══════════
 function getData(name){
   return new Promise(async resolve => {
-    // Return localStorage IMMEDIATELY — no waiting
-    const local = lsGet(name);
-    resolve(local);
-    // Sync Firestore in background (doesn't block render)
+    // Always read from Firestore first (source of truth)
     try {
       const snap = await db.collection('users').doc(currentUser.uid).collection(name).get();
       if (!snap.empty) {
-        const fresh = snap.docs.map(d=>({id:d.id,...d.data()}));
+        // Deduplicate by ID before saving
+        const seen = new Set();
+        const fresh = snap.docs
+          .map(d=>({id:d.id,...d.data()}))
+          .filter(d=>{ if(seen.has(d.id)) return false; seen.add(d.id); return true; });
         lsSet(name, fresh);
-        // If data changed, silently update without re-render
-      } else if (local.length > 0) {
-        syncToFirestore(name, local);
+        resolve(fresh);
+        return;
       }
-    } catch(e) { /* offline or rules — localStorage already served */ }
+    } catch(e) { /* offline - fall through to localStorage */ }
+    // Fallback: localStorage only if Firestore fails
+    resolve(lsGet(name));
   });
 }
 
 async function syncToFirestore(name, items) {
+  // Only called when Firestore is empty and localStorage has data
+  // Use the item's existing id as the doc id to prevent duplicates
   try {
     const batch = db.batch();
     items.forEach(item => {
       const {id,...data} = item;
-      const ref = db.collection('users').doc(currentUser.uid).collection(name).doc();
+      const ref = db.collection('users').doc(currentUser.uid).collection(name).doc(id);
       batch.set(ref, {...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
     });
     await batch.commit();
@@ -293,18 +297,26 @@ async function syncToFirestore(name, items) {
 }
 
 async function saveItem(name, data) {
-  const id = 'local_' + Date.now();
-  const item = {...data, id, createdAt: new Date()};
-  const list = lsGet(name);
-  list.push(item);
-  lsSet(name, list);
   try {
-    const ref = await db.collection('users').doc(currentUser.uid).collection(name).add({...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-    // Update localStorage with real id
-    const updated = lsGet(name).map(x => x.id===id ? {...x, id:ref.id} : x);
-    lsSet(name, updated);
-  } catch(e) {}
-  return id;
+    // Save to Firestore first — get the real ID
+    const ref = await db.collection('users').doc(currentUser.uid).collection(name).add({
+      ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const item = {...data, id: ref.id, createdAt: new Date()};
+    // Update localStorage with the real Firestore ID
+    const list = lsGet(name);
+    list.push(item);
+    lsSet(name, list);
+    return ref.id;
+  } catch(e) {
+    // Offline fallback
+    const id = 'local_' + Date.now();
+    const item = {...data, id, createdAt: new Date()};
+    const list = lsGet(name);
+    list.push(item);
+    lsSet(name, list);
+    return id;
+  }
 }
 
 async function updateItem(name, id, data) {
